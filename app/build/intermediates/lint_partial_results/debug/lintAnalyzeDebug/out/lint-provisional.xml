@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.13.2" type="conditional_incidents">
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="26-∞" requiresApi="31-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/syncspend_widget_info.xml"
+            line="6"
+            column="5"
+            startOffset="185"
+            endLine="6"
+            endColumn="32"
+            endOffset="212"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `targetCellWidth` is only used in API level 31 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="26-∞"/>
+            <api-levels id="requiresApi"
+                value="31-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="26-∞" requiresApi="31-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/syncspend_widget_info.xml"
+            line="7"
+            column="5"
+            startOffset="217"
+            endLine="7"
+            endColumn="33"
+            endOffset="245"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `targetCellHeight` is only used in API level 31 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="26-∞"/>
+            <api-levels id="requiresApi"
+                value="31-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="26-∞" requiresApi="31-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/syncspend_widget_info.xml"
+            line="8"
+            column="5"
+            startOffset="250"
+            endLine="8"
+            endColumn="35"
+            endOffset="280"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `maxResizeWidth` is only used in API level 31 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="26-∞"/>
+            <api-levels id="requiresApi"
+                value="31-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="26-∞" requiresApi="31-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/syncspend_widget_info.xml"
+            line="9"
+            column="5"
+            startOffset="285"
+            endLine="9"
+            endColumn="36"
+            endOffset="316"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `maxResizeHeight` is only used in API level 31 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="26-∞"/>
+            <api-levels id="requiresApi"
+                value="31-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="26-∞" requiresApi="31-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/syncspend_widget_info.xml"
+            line="14"
+            column="5"
+            startOffset="501"
+            endLine="14"
+            endColumn="66"
+            endOffset="562"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `previewLayout` is only used in API level 31 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="26-∞"/>
+            <api-levels id="requiresApi"
+                value="31-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="VectorRaster"
+        severity="warning"
+        message="">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_add.xml"
+            line="8"
+            column="28"
+            startOffset="258"
+            endLine="8"
+            endColumn="40"
+            endOffset="270"/>
+        <map>
+            <entry
+                name="containsFillType"
+                boolean="false"/>
+            <entry
+                name="containsGradient"
+                boolean="false"/>
+            <entry
+                name="folderVersion"
+                int="-1"/>
+            <entry
+                name="message"
+                string="Resource references will not work correctly in images generated for this vector icon for API &lt; %1$d; check generated icon to make sure it looks acceptable"/>
+        </map>
+    </incident>
+
+    <incident
+        id="VectorRaster"
+        severity="warning"
+        message="">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_add.xml"
+            line="11"
+            column="30"
+            startOffset="377"
+            endLine="11"
+            endColumn="42"
+            endOffset="389"/>
+        <map>
+            <entry
+                name="containsFillType"
+                boolean="false"/>
+            <entry
+                name="containsGradient"
+                boolean="false"/>
+            <entry
+                name="folderVersion"
+                int="-1"/>
+            <entry
+                name="message"
+                string="Resource references will not work correctly in images generated for this vector icon for API &lt; %1$d; check generated icon to make sure it looks acceptable"/>
+        </map>
+    </incident>
+
+</incidents>

@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.spendsync.app.presentation.screens.settings.SettingsViewModel

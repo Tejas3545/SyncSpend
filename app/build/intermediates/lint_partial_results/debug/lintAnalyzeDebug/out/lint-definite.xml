@@ -1,0 +1,1930 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.13.2" type="incidents">
+
+    <incident
+        id="OldTargetApi"
+        severity="warning"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details.">
+        <fix-replace
+            description="Update targetSdkVersion to 36"
+            oldString="35"
+            replacement="36"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="17"
+            column="9"
+            startOffset="400"
+            endLine="17"
+            endColumn="23"
+            endOffset="414"/>
+    </incident>
+
+    <incident
+        id="AppLinkWarning"
+        severity="warning"
+        message="This intent filter has the format of an Android App Link but is missing the `autoVerify` attribute; add `android:autoVerify=&quot;true&quot;` to ensure your domain will be validated and enable App Link-related Lint warnings. If you do not want clicked URLs to bring the user to your app, remove the `android.intent.category.BROWSABLE` category, or set `android:autoVerify=&quot;false&quot;` to make it clear this is not intended to be an Android App Link.">
+        <fix-attribute
+            description="Set autoVerify=&quot;true&quot;"
+            robot="true"
+            independent="true"
+            namespace="http://schemas.android.com/apk/res/android"
+            attribute="autoVerify"
+            value="true"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
+            line="49"
+            column="14"
+            startOffset="2081"
+            endLine="49"
+            endColumn="27"
+            endOffset="2094"/>
+    </incident>
+
+    <incident
+        id="BadPeriodicWorkRequestEnqueue"
+        severity="warning"
+        message="Use `enqueueUniquePeriodicWork()` instead of `enqueue()`">
+        <location
+            file="$GRADLE_USER_HOME/caches/8.13/transforms/3b578906653a8e92422c56d1950f4f8b/transformed/work-runtime-2.10.0/jars/classes.jar!/androidx/work/WorkManager.class"/>
+    </incident>
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of com.android.application than 8.13.2 is available: 9.2.1">
+        <fix-replace
+            description="Replace with 9.2.1"
+            family="Update versions"
+            oldString="8.13.2"
+            replacement="9.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="3"
+            column="7"
+            startOffset="31"
+            endLine="3"
+            endColumn="15"
+            endOffset="39"/>
+        <map>
+            <entry
+                name="coordinate"
+                string="com.android.application"/>
+            <entry
+                name="revision"
+                string="9.2.1"/>
+        </map>
+    </incident>
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of com.android.library than 8.13.2 is available: 9.2.1">
+        <fix-replace
+            description="Replace with 9.2.1"
+            family="Update versions"
+            oldString="8.13.2"
+            replacement="9.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="3"
+            column="7"
+            startOffset="31"
+            endLine="3"
+            endColumn="15"
+            endOffset="39"/>
+        <map>
+            <entry
+                name="coordinate"
+                string="com.android.application"/>
+            <entry
+                name="revision"
+                string="9.2.1"/>
+        </map>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of `compileSdkVersion` than 35 is available: 36">
+        <fix-replace
+            description="Set compileSdkVersion to 36"
+            oldString="35"
+            replacement="36"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="12"
+            column="5"
+            startOffset="291"
+            endLine="12"
+            endColumn="20"
+            endOffset="306"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose.ui:ui-text-google-fonts than 1.7.8 is available: 1.11.2">
+        <fix-replace
+            description="Change to 1.11.2"
+            family="Update versions"
+            oldString="1.7.8"
+            replacement="1.11.2"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="82"
+            column="20"
+            startOffset="2184"
+            endLine="82"
+            endColumn="68"
+            endOffset="2232"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.core:core-ktx than 1.16.0 is available: 1.19.0">
+        <fix-replace
+            description="Change to 1.19.0"
+            family="Update versions"
+            oldString="1.16.0"
+            replacement="1.19.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="8"
+            column="11"
+            startOffset="106"
+            endLine="8"
+            endColumn="19"
+            endOffset="114"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.7.1">
+        <fix-replace
+            description="Change to 1.7.1"
+            family="Update versions"
+            oldString="1.7.0"
+            replacement="1.7.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="9"
+            column="13"
+            startOffset="127"
+            endLine="9"
+            endColumn="20"
+            endOffset="134"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.activity:activity-compose than 1.10.1 is available: 1.13.0">
+        <fix-replace
+            description="Change to 1.13.0"
+            family="Update versions"
+            oldString="1.10.1"
+            replacement="1.13.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="10"
+            column="19"
+            startOffset="153"
+            endLine="10"
+            endColumn="27"
+            endOffset="161"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.8.7 is available: 2.10.0">
+        <fix-replace
+            description="Change to 2.10.0"
+            family="Update versions"
+            oldString="2.8.7"
+            replacement="2.10.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="11"
+            column="23"
+            startOffset="184"
+            endLine="11"
+            endColumn="30"
+            endOffset="191"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.8.7 is available: 2.10.0">
+        <fix-replace
+            description="Change to 2.10.0"
+            family="Update versions"
+            oldString="2.8.7"
+            replacement="2.10.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="12"
+            column="29"
+            startOffset="220"
+            endLine="12"
+            endColumn="36"
+            endOffset="227"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.core:core-splashscreen than 1.0.1 is available: 1.2.0">
+        <fix-replace
+            description="Change to 1.2.0"
+            family="Update versions"
+            oldString="1.0.1"
+            replacement="1.2.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="13"
+            column="16"
+            startOffset="243"
+            endLine="13"
+            endColumn="23"
+            endOffset="250"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.credentials:credentials than 1.3.0 is available: 1.6.0">
+        <fix-replace
+            description="Change to 1.6.0"
+            family="Update versions"
+            oldString="1.3.0"
+            replacement="1.6.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="14"
+            column="14"
+            startOffset="264"
+            endLine="14"
+            endColumn="21"
+            endOffset="271"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.credentials:credentials-play-services-auth than 1.3.0 is available: 1.6.0">
+        <fix-replace
+            description="Change to 1.6.0"
+            family="Update versions"
+            oldString="1.3.0"
+            replacement="1.6.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="14"
+            column="14"
+            startOffset="264"
+            endLine="14"
+            endColumn="21"
+            endOffset="271"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of com.google.android.gms:play-services-auth than 21.3.0 is available: 21.6.0">
+        <fix-replace
+            description="Change to 21.6.0"
+            family="Update versions"
+            oldString="21.3.0"
+            replacement="21.6.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="15"
+            column="15"
+            startOffset="286"
+            endLine="15"
+            endColumn="23"
+            endOffset="294"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose:compose-bom than 2024.12.01 is available: 2026.05.01">
+        <fix-replace
+            description="Change to 2026.05.01"
+            family="Update versions"
+            oldString="2024.12.01"
+            replacement="2026.05.01"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="18"
+            column="14"
+            startOffset="319"
+            endLine="18"
+            endColumn="26"
+            endOffset="331"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.navigation:navigation-compose than 2.8.5 is available: 2.9.8">
+        <fix-replace
+            description="Change to 2.9.8"
+            family="Update versions"
+            oldString="2.8.5"
+            replacement="2.9.8"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="19"
+            column="21"
+            startOffset="352"
+            endLine="19"
+            endColumn="28"
+            endOffset="359"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-compiler than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="26"
+            column="8"
+            startOffset="466"
+            endLine="26"
+            endColumn="15"
+            endOffset="473"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-ktx than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="26"
+            column="8"
+            startOffset="466"
+            endLine="26"
+            endColumn="15"
+            endOffset="473"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.room:room-runtime than 2.6.1 is available: 2.8.4">
+        <fix-replace
+            description="Change to 2.8.4"
+            family="Update versions"
+            oldString="2.6.1"
+            replacement="2.8.4"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="26"
+            column="8"
+            startOffset="466"
+            endLine="26"
+            endColumn="15"
+            endOffset="473"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.datastore:datastore-preferences than 1.1.1 is available: 1.2.1">
+        <fix-replace
+            description="Change to 1.2.1"
+            family="Update versions"
+            oldString="1.1.1"
+            replacement="1.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="29"
+            column="13"
+            startOffset="522"
+            endLine="29"
+            endColumn="20"
+            endOffset="529"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.hilt:hilt-navigation-compose than 1.2.0 is available: 1.3.0">
+        <fix-replace
+            description="Change to 1.3.0"
+            family="Update versions"
+            oldString="1.2.0"
+            replacement="1.3.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="33"
+            column="25"
+            startOffset="599"
+            endLine="33"
+            endColumn="32"
+            endOffset="606"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.work:work-runtime-ktx than 2.10.0 is available: 2.11.2">
+        <fix-replace
+            description="Change to 2.11.2"
+            family="Update versions"
+            oldString="2.10.0"
+            replacement="2.11.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="44"
+            column="15"
+            startOffset="771"
+            endLine="44"
+            endColumn="23"
+            endOffset="779"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.hilt:hilt-compiler than 1.2.0 is available: 1.3.0">
+        <fix-replace
+            description="Change to 1.3.0"
+            family="Update versions"
+            oldString="1.2.0"
+            replacement="1.3.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="45"
+            column="12"
+            startOffset="791"
+            endLine="45"
+            endColumn="19"
+            endOffset="798"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.hilt:hilt-work than 1.2.0 is available: 1.3.0">
+        <fix-replace
+            description="Change to 1.3.0"
+            family="Update versions"
+            oldString="1.2.0"
+            replacement="1.3.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="45"
+            column="12"
+            startOffset="791"
+            endLine="45"
+            endColumn="19"
+            endOffset="798"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test.ext:junit than 1.2.1 is available: 1.3.0">
+        <fix-replace
+            description="Change to 1.3.0"
+            family="Update versions"
+            oldString="1.2.1"
+            replacement="1.3.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="52"
+            column="12"
+            startOffset="863"
+            endLine="52"
+            endColumn="19"
+            endOffset="870"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.test.espresso:espresso-core than 3.6.1 is available: 3.7.0">
+        <fix-replace
+            description="Change to 3.7.0"
+            family="Update versions"
+            oldString="3.6.1"
+            replacement="3.7.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="53"
+            column="12"
+            startOffset="882"
+            endLine="53"
+            endColumn="19"
+            endOffset="889"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.android than 2.1.10 is available: 2.4.0">
+        <fix-replace
+            description="Change to 2.4.0"
+            family="Update versions"
+            oldString="2.1.10"
+            replacement="2.4.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="4"
+            column="10"
+            startOffset="49"
+            endLine="4"
+            endColumn="18"
+            endOffset="57"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.1.10 is available: 2.4.0">
+        <fix-replace
+            description="Change to 2.4.0"
+            family="Update versions"
+            oldString="2.1.10"
+            replacement="2.4.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="4"
+            column="10"
+            startOffset="49"
+            endLine="4"
+            endColumn="18"
+            endOffset="57"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.plugin.parcelize than 2.1.10 is available: 2.4.0">
+        <fix-replace
+            description="Change to 2.4.0"
+            family="Update versions"
+            oldString="2.1.10"
+            replacement="2.4.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="4"
+            column="10"
+            startOffset="49"
+            endLine="4"
+            endColumn="18"
+            endOffset="57"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.google.dagger.hilt.android than 2.55 is available: 2.59.2">
+        <fix-replace
+            description="Change to 2.59.2"
+            family="Update versions"
+            oldString="2.55"
+            replacement="2.59.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="32"
+            column="8"
+            startOffset="568"
+            endLine="32"
+            endColumn="14"
+            endOffset="574"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.google.dagger:hilt-android than 2.55 is available: 2.59.2">
+        <fix-replace
+            description="Change to 2.59.2"
+            family="Update versions"
+            oldString="2.55"
+            replacement="2.59.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="32"
+            column="8"
+            startOffset="568"
+            endLine="32"
+            endColumn="14"
+            endOffset="574"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.google.dagger:hilt-android-compiler than 2.55 is available: 2.59.2">
+        <fix-replace
+            description="Change to 2.59.2"
+            family="Update versions"
+            oldString="2.55"
+            replacement="2.59.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="32"
+            column="8"
+            startOffset="568"
+            endLine="32"
+            endColumn="14"
+            endOffset="574"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.squareup.retrofit2:converter-moshi than 2.11.0 is available: 3.0.0">
+        <fix-replace
+            description="Change to 3.0.0"
+            family="Update versions"
+            oldString="2.11.0"
+            replacement="3.0.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="36"
+            column="12"
+            startOffset="645"
+            endLine="36"
+            endColumn="20"
+            endOffset="653"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.squareup.retrofit2:retrofit than 2.11.0 is available: 3.0.0">
+        <fix-replace
+            description="Change to 3.0.0"
+            family="Update versions"
+            oldString="2.11.0"
+            replacement="3.0.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="36"
+            column="12"
+            startOffset="645"
+            endLine="36"
+            endColumn="20"
+            endOffset="653"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.squareup.okhttp3:logging-interceptor than 4.12.0 is available: 5.3.2">
+        <fix-replace
+            description="Change to 5.3.2"
+            family="Update versions"
+            oldString="4.12.0"
+            replacement="5.3.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="37"
+            column="10"
+            startOffset="663"
+            endLine="37"
+            endColumn="18"
+            endOffset="671"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.squareup.okhttp3:okhttp than 4.12.0 is available: 5.3.2">
+        <fix-replace
+            description="Change to 5.3.2"
+            family="Update versions"
+            oldString="4.12.0"
+            replacement="5.3.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="37"
+            column="10"
+            startOffset="663"
+            endLine="37"
+            endColumn="18"
+            endOffset="671"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.9.0 is available: 1.11.0">
+        <fix-replace
+            description="Change to 1.11.0"
+            family="Update versions"
+            oldString="1.9.0"
+            replacement="1.11.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="41"
+            column="14"
+            startOffset="716"
+            endLine="41"
+            endColumn="21"
+            endOffset="723"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-test than 1.9.0 is available: 1.11.0">
+        <fix-replace
+            description="Change to 1.11.0"
+            family="Update versions"
+            oldString="1.9.0"
+            replacement="1.11.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="41"
+            column="14"
+            startOffset="716"
+            endLine="41"
+            endColumn="21"
+            endOffset="723"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.patrykandpatrick.vico:compose than 2.0.1 is available: 3.2.2">
+        <fix-replace
+            description="Change to 3.2.2"
+            family="Update versions"
+            oldString="2.0.1"
+            replacement="3.2.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="48"
+            column="8"
+            startOffset="816"
+            endLine="48"
+            endColumn="15"
+            endOffset="823"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.patrykandpatrick.vico:compose-m3 than 2.0.1 is available: 3.2.2">
+        <fix-replace
+            description="Change to 3.2.2"
+            family="Update versions"
+            oldString="2.0.1"
+            replacement="3.2.2"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="48"
+            column="8"
+            startOffset="816"
+            endLine="48"
+            endColumn="15"
+            endOffset="823"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.patrykandpatrick.vico:core than 2.0.1 is available: 2.5.1">
+        <fix-replace
+            description="Change to 2.5.1"
+            family="Update versions"
+            oldString="2.0.1"
+            replacement="2.5.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="48"
+            column="8"
+            startOffset="816"
+            endLine="48"
+            endColumn="15"
+            endOffset="823"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.mockk:mockk than 1.14.0 is available: 1.14.11">
+        <fix-replace
+            description="Change to 1.14.11"
+            family="Update versions"
+            oldString="1.14.0"
+            replacement="1.14.11"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="54"
+            column="9"
+            startOffset="898"
+            endLine="54"
+            endColumn="17"
+            endOffset="906"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of app.cash.turbine:turbine than 1.2.0 is available: 1.2.1">
+        <fix-replace
+            description="Change to 1.2.1"
+            family="Update versions"
+            oldString="1.2.0"
+            replacement="1.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="55"
+            column="11"
+            startOffset="917"
+            endLine="55"
+            endColumn="18"
+            endOffset="924"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.coil-kt:coil-compose than 2.6.0 is available: 2.7.0">
+        <fix-replace
+            description="Change to 2.7.0"
+            family="Update versions"
+            oldString="2.6.0"
+            replacement="2.7.0"
+            priority="0"/>
+        <location
+            file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+            line="117"
+            column="73"
+            startOffset="5208"
+            endLine="117"
+            endColumn="80"
+            endOffset="5215"/>
+    </incident>
+
+    <incident
+        id="ModifierParameter"
+        severity="warning"
+        message="Modifier parameter should be the first optional parameter">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/spendsync/app/presentation/screens/home/HomeScreen.kt"
+            line="365"
+            column="5"
+            startOffset="16907"
+            endLine="365"
+            endColumn="13"
+            endOffset="16915"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA!&quot; instead of &quot;DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA!&quot;"
+            oldString="DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1"
+            replacement="DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="57"
+            startOffset="390"
+            endLine="10"
+            endColumn="95"
+            endOffset="428"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;FcVrEwgeMGA!&quot; instead of &quot;FcVrEwgeMGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;FcVrEwgeMGA!&quot;"
+            oldString="FcVrEwgeMGA1"
+            replacement="FcVrEwgeMGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="884"
+            startOffset="1217"
+            endLine="10"
+            endColumn="896"
+            endOffset="1229"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;HAloCcYrn!&quot; instead of &quot;HAloCcYrn1&quot;?">
+        <fix-replace
+            description="Replace with &quot;HAloCcYrn!&quot;"
+            oldString="HAloCcYrn1"
+            replacement="HAloCcYrn!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="534"
+            startOffset="867"
+            endLine="10"
+            endColumn="544"
+            endOffset="877"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;bqdEWNaAElGc!&quot; instead of &quot;bqdEWNaAElGc1&quot;?">
+        <fix-replace
+            description="Replace with &quot;bqdEWNaAElGc!&quot;"
+            oldString="bqdEWNaAElGc1"
+            replacement="bqdEWNaAElGc!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="743"
+            startOffset="1076"
+            endLine="10"
+            endColumn="756"
+            endOffset="1089"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!&quot; instead of &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!&quot;"
+            oldString="jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA1"
+            replacement="jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="388"
+            startOffset="721"
+            endLine="10"
+            endColumn="427"
+            endOffset="760"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!&quot; instead of &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!&quot;"
+            oldString="jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA1"
+            replacement="jMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEVMBMGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="1053"
+            startOffset="1386"
+            endLine="10"
+            endColumn="1092"
+            endOffset="1425"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;jaXNjbzETMBEGA!&quot; instead of &quot;jaXNjbzETMBEGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;jaXNjbzETMBEGA!&quot;"
+            oldString="jaXNjbzETMBEGA1"
+            replacement="jaXNjbzETMBEGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="140"
+            startOffset="473"
+            endLine="10"
+            endColumn="155"
+            endOffset="488"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;pYTEWMBQGA!&quot; instead of &quot;pYTEWMBQGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;pYTEWMBQGA!&quot;"
+            oldString="pYTEWMBQGA1"
+            replacement="pYTEWMBQGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="112"
+            startOffset="445"
+            endLine="10"
+            endColumn="123"
+            endOffset="456"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;xlIEluYzEUMBIGA!&quot; instead of &quot;xlIEluYzEUMBIGA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;xlIEluYzEUMBIGA!&quot;"
+            oldString="xlIEluYzEUMBIGA1"
+            replacement="xlIEluYzEUMBIGA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="167"
+            startOffset="500"
+            endLine="10"
+            endColumn="183"
+            endOffset="516"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;ybmlhMRYwFAYDVQQHEw!&quot; instead of &quot;ybmlhMRYwFAYDVQQHEw1&quot;?">
+        <fix-replace
+            description="Replace with &quot;ybmlhMRYwFAYDVQQHEw!&quot;"
+            oldString="ybmlhMRYwFAYDVQQHEw1"
+            replacement="ybmlhMRYwFAYDVQQHEw!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="324"
+            startOffset="657"
+            endLine="10"
+            endColumn="344"
+            endOffset="677"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;ybmlhMRYwFAYDVQQHEw!&quot; instead of &quot;ybmlhMRYwFAYDVQQHEw1&quot;?">
+        <fix-replace
+            description="Replace with &quot;ybmlhMRYwFAYDVQQHEw!&quot;"
+            oldString="ybmlhMRYwFAYDVQQHEw1"
+            replacement="ybmlhMRYwFAYDVQQHEw!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="346"
+                endOffset="1772"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="10"
+            column="989"
+            startOffset="1322"
+            endLine="10"
+            endColumn="1009"
+            endOffset="1342"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;GA!&quot; instead of &quot;GA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;GA!&quot;"
+            oldString="GA1"
+            replacement="GA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="180"
+            startOffset="2070"
+            endLine="16"
+            endColumn="183"
+            endOffset="2073"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;GA!&quot; instead of &quot;GA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;GA!&quot;"
+            oldString="GA1"
+            replacement="GA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="204"
+            startOffset="2094"
+            endLine="16"
+            endColumn="207"
+            endOffset="2097"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;GA!&quot; instead of &quot;GA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;GA!&quot;"
+            oldString="GA1"
+            replacement="GA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="380"
+            startOffset="2270"
+            endLine="16"
+            endColumn="383"
+            endOffset="2273"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;GA!&quot; instead of &quot;GA1&quot;?">
+        <fix-replace
+            description="Replace with &quot;GA!&quot;"
+            oldString="GA1"
+            replacement="GA!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="404"
+            startOffset="2294"
+            endLine="16"
+            endColumn="407"
+            endOffset="2297"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;ybmlhMRYwFAYDVQQHEw!&quot; instead of &quot;ybmlhMRYwFAYDVQQHEw1&quot;?">
+        <fix-replace
+            description="Replace with &quot;ybmlhMRYwFAYDVQQHEw!&quot;"
+            oldString="ybmlhMRYwFAYDVQQHEw1"
+            replacement="ybmlhMRYwFAYDVQQHEw!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="108"
+            startOffset="1998"
+            endLine="16"
+            endColumn="128"
+            endOffset="2018"/>
+    </incident>
+
+    <incident
+        id="Typos"
+        severity="warning"
+        message="Did you mean &quot;ybmlhMRYwFAYDVQQHEw!&quot; instead of &quot;ybmlhMRYwFAYDVQQHEw1&quot;?">
+        <fix-replace
+            description="Replace with &quot;ybmlhMRYwFAYDVQQHEw!&quot;"
+            oldString="ybmlhMRYwFAYDVQQHEw1"
+            replacement="ybmlhMRYwFAYDVQQHEw!"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+                startOffset="1903"
+                endOffset="2697"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/font_certs.xml"
+            line="16"
+            column="308"
+            startOffset="2198"
+            endLine="16"
+            endColumn="328"
+            endOffset="2218"/>
+    </incident>
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 26. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <fix-data file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-anydpi-v26" folderName="mipmap-anydpi" requiresApi="26"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-anydpi-v26"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (8465 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="7"
+            column="25"
+            startOffset="226"
+            endLine="7"
+            endColumn="8490"
+            endOffset="8691"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (15274 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="10"
+            column="25"
+            startOffset="8764"
+            endLine="10"
+            endColumn="15299"
+            endOffset="24038"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (6493 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="13"
+            column="25"
+            startOffset="24111"
+            endLine="13"
+            endColumn="6518"
+            endOffset="30604"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (5167 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="19"
+            column="25"
+            startOffset="32281"
+            endLine="19"
+            endColumn="5192"
+            endOffset="37448"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (3953 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="22"
+            column="25"
+            startOffset="37521"
+            endLine="22"
+            endColumn="3978"
+            endOffset="41474"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (3993 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="25"
+            column="25"
+            startOffset="41547"
+            endLine="25"
+            endColumn="4018"
+            endOffset="45540"/>
+    </incident>
+
+    <incident
+        id="VectorPath"
+        severity="warning"
+        message="Very long vector path (3168 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/ic_logo.xml"
+            line="31"
+            column="25"
+            startOffset="48117"
+            endLine="31"
+            endColumn="3193"
+            endOffset="51285"/>
+    </incident>
+
+    <incident
+        id="Overdraw"
+        severity="warning"
+        message="Possible overdraw: Root element paints background `@color/surface_light` with a theme that also paints a background (inferred theme is `@style/Theme.SpendSync`)">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/glance_default_loading_layout.xml"
+            line="7"
+            column="5"
+            startOffset="261"
+            endLine="7"
+            endColumn="46"
+            endOffset="302"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconLauncherShape"
+        severity="warning"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="MonochromeLauncherIcon"
+        severity="warning"
+        message="The application adaptive icon is missing a monochrome tag">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"
+            startOffset="40"
+            endLine="7"
+            endColumn="17"
+            endOffset="316"/>
+    </incident>
+
+    <incident
+        id="MonochromeLauncherIcon"
+        severity="warning"
+        message="The application adaptive roundIcon is missing a monochrome tag">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"
+            startOffset="40"
+            endLine="7"
+            endColumn="17"
+            endOffset="316"/>
+    </incident>
+
+    <incident
+        id="IconDipSize"
+        severity="warning"
+        message="The image `ic_launcher.png` varies significantly in its density-independent (dip) size across the various density versions: mipmap-hdpi/ic_launcher.png: 683x683 dp (1024x1024 px), mipmap-mdpi/ic_launcher.png: 1024x1024 dp (1024x1024 px), mipmap-xhdpi/ic_launcher.png: 512x512 dp (1024x1024 px), mipmap-xxhdpi/ic_launcher.png: 341x341 dp (1024x1024 px), mipmap-xxxhdpi/ic_launcher.png: 256x256 dp (1024x1024 px)">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconDipSize"
+        severity="warning"
+        message="The image `ic_launcher_foreground_image.png` varies significantly in its density-independent (dip) size across the various density versions: mipmap-hdpi/ic_launcher_foreground_image.png: 683x683 dp (1024x1024 px), mipmap-mdpi/ic_launcher_foreground_image.png: 1024x1024 dp (1024x1024 px), mipmap-xhdpi/ic_launcher_foreground_image.png: 512x512 dp (1024x1024 px), mipmap-xxhdpi/ic_launcher_foreground_image.png: 341x341 dp (1024x1024 px), mipmap-xxxhdpi/ic_launcher_foreground_image.png: 256x256 dp (1024x1024 px)">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconDipSize"
+        severity="warning"
+        message="The image `ic_launcher_round.png` varies significantly in its density-independent (dip) size across the various density versions: mipmap-hdpi/ic_launcher_round.png: 683x683 dp (1024x1024 px), mipmap-mdpi/ic_launcher_round.png: 1024x1024 dp (1024x1024 px), mipmap-xhdpi/ic_launcher_round.png: 512x512 dp (1024x1024 px), mipmap-xxhdpi/ic_launcher_round.png: 341x341 dp (1024x1024 px), mipmap-xxxhdpi/ic_launcher_round.png: 256x256 dp (1024x1024 px)">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconDuplicates"
+        severity="warning"
+        message="The following unrelated icon files have identical contents: ic_launcher.png, ic_launcher_foreground_image.png, ic_launcher_round.png, ic_launcher.png, ic_launcher_foreground_image.png, ic_launcher_round.png, ic_launcher.png, ic_launcher_foreground_image.png, ic_launcher_round.png, ic_launcher.png, ic_launcher_foreground_image.png, ic_launcher_round.png, ic_launcher.png, ic_launcher_foreground_image.png, ic_launcher_round.png">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_round.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_foreground_image.png"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_foreground_image.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-hdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-mdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="IconExtension"
+        severity="warning"
+        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/mipmap-xxxhdpi/ic_launcher_round.png"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(authUrl)"
+            replacement="authUrl.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/spendsync/app/presentation/screens/login/LoginViewModel.kt"
+                startOffset="3915"
+                endOffset="3933"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/spendsync/app/presentation/screens/login/LoginViewModel.kt"
+            line="85"
+            column="49"
+            startOffset="3915"
+            endLine="85"
+            endColumn="67"
+            endOffset="3933"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="android.net.Uri.parse(authUrl)"
+            replacement="authUrl.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/spendsync/app/presentation/screens/settings/SettingsScreen.kt"
+                startOffset="10107"
+                endOffset="10137"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/spendsync/app/presentation/screens/settings/SettingsScreen.kt"
+            line="208"
+            column="109"
+            startOffset="10107"
+            endLine="208"
+            endColumn="139"
+            endOffset="10137"/>
+    </incident>
+
+    <incident
+        id="UseTomlInstead"
+        severity="warning"
+        message="Use version catalog instead">
+        <fix-composite
+            description="Replace with new library catalog declaration for androidx-ui-text-google-fonts"
+            robot="true">
+            <fix-replace
+                description="Replace with uiTextGoogleFonts = &quot;1.7.8&quot;..."
+                robot="true"
+                oldString="_lint_insert_begin_"
+                replacement="uiTextGoogleFonts = &quot;1.7.8&quot;&#xA;"
+                priority="0">
+                <range
+                    file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+                    startOffset="757"
+                    endOffset="757"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with androidx-ui-text-google-fonts = { module = &quot;androidx.compose.ui:ui-text-google-fonts&quot;, version.ref = &quot;uiTextGoogleFonts&quot; }..."
+                robot="true"
+                oldString="_lint_insert_begin_"
+                replacement="androidx-ui-text-google-fonts = { module = &quot;androidx.compose.ui:ui-text-google-fonts&quot;, version.ref = &quot;uiTextGoogleFonts&quot; }&#xA;"
+                priority="0">
+                <range
+                    file="$HOME/Desktop/SyncSpend/gradle/libs.versions.toml"
+                    startOffset="1911"
+                    endOffset="1911"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with libs.androidx.ui.text.google.fonts"
+                robot="true"
+                replacement="libs.androidx.ui.text.google.fonts"
+                priority="0">
+                <range
+                    file="${:app*projectDir}/build.gradle.kts"
+                    startOffset="2184"
+                    endOffset="2232"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="82"
+            column="20"
+            startOffset="2184"
+            endLine="82"
+            endColumn="68"
+            endOffset="2232"/>
+    </incident>
+
+</incidents>
