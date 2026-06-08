@@ -1,4 +1,4 @@
-# SpendSync - Android Expense Tracker
+# SyncSpend - Android Expense Tracker
 
 A 100% free, native Android expense tracking application with Notion sync. No subscriptions, no payments, no ads.
 
