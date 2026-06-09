@@ -102,11 +102,11 @@ This application is **100% free** for both developers and users:
 | Retrofit/OkHttp/Moshi | $0 (open source) |
 | Vico charts | $0 (MIT license) |
 | Hilt | $0 (Apache 2.0) |
-| Backend server | $0 (not needed) |
+| Backend server | $0 for offline/Google Sheets and personal-token Notion mode |
 | Firebase/cloud services | $0 (not used) |
 | Play Store fee | $25 (one-time, for publishing) |
 
-**Developer running cost: $0/month after initial $25 Play Store registration.**
+**Developer running cost can remain $0/month for the offline app, Google Sheets, and personal-token Notion mode. Public Notion OAuth would require a secure token-exchange service.**
 
 ## License
 
@@ -123,3 +123,11 @@ For issues or questions, please open an issue on the GitHub repository.
 ---
 
 **SpendSync** - Track your spending, sync to Notion, stay free forever.
+
+## Product direction and privacy baseline
+
+SyncSpend is an offline-first native Android application. A user can record and review expenses without creating an account; integrations are optional destinations owned by the user, not a developer-hosted expense database.
+
+See [`DOCS/ANDROID_PRODUCT_ROADMAP.md`](DOCS/ANDROID_PRODUCT_ROADMAP.md) for the agent-ready requirements, architecture, Google Sheets setup plan, secure Notion options, acceptance criteria, and Play Store delivery phases.
+
+> Security notice: never place a Notion OAuth client secret or user integration token in the APK. Any credential previously committed to Git must be revoked/rotated because deleting it in a later commit does not erase repository history.

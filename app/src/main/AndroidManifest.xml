@@ -13,7 +13,8 @@
         android:theme="@style/Theme.SpendSync"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="false">
+        android:fullBackupContent="false"
+        android:usesCleartextTraffic="false">
 
         <!-- Main Activity -->
         <activity
@@ -37,21 +38,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- OAuth Redirect - Custom Scheme -->
-            <intent-filter android:label="@string/app_name">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="syncspend" android:host="oauth" />
-            </intent-filter>
-
-            <!-- OAuth Redirect - HTTPS Style (matches user link) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="syncspend" />
-            </intent-filter>
         </activity>
 
         <activity

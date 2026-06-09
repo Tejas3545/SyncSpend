@@ -1,6 +1,5 @@
 package com.spendsync.app.data.repository
 
-import com.spendsync.app.AppConfig
 import com.spendsync.app.data.local.datastore.AuthDataStore
 import com.spendsync.app.domain.repository.AuthRepository
 import android.util.Log
@@ -8,8 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,53 +25,9 @@ class AuthRepositoryImpl @Inject constructor(
     }
     
     override val notionDatabaseId: Flow<String?> = authDataStore.notionDatabaseId.map { 
-        it.takeIf { d -> !d.isNullOrEmpty() } ?: AppConfig.NOTION_DATABASE_ID.takeIf { c -> c.isNotEmpty() }
+        it.takeIf { d -> !d.isNullOrEmpty() }
     }
 
-    override suspend fun loginWithNotion(code: String): Result<Unit> {
-        return try {
-            val credentials = okhttp3.Credentials.basic(
-                AppConfig.NOTION_CLIENT_ID, 
-                AppConfig.NOTION_CLIENT_SECRET
-            )
-            val request = com.spendsync.app.data.remote.NotionTokenRequest(
-                grant_type = "authorization_code",
-                code = code,
-                redirect_uri = AppConfig.NOTION_REDIRECT_URI
-            )
-            // Use Retrofit service directly if available, or OkHttp
-            // Since we don't have the Retrofit service injected here, let's use okhttp
-            val client = okhttp3.OkHttpClient()
-            val json = com.squareup.moshi.Moshi.Builder().build().adapter(com.spendsync.app.data.remote.NotionTokenRequest::class.java).toJson(request)
-            val mediaType = "application/json".toMediaTypeOrNull()
-            val body = json.toRequestBody(mediaType)
-            val req = okhttp3.Request.Builder()
-                .url("https://api.notion.com/v1/oauth/token")
-                .post(body)
-                .addHeader("Authorization", credentials)
-                .build()
-                
-            val response = client.newCall(req).execute()
-            if (response.isSuccessful) {
-                val respBody = response.body?.string()
-                val tokenResponse = org.json.JSONObject(respBody ?: "{}")
-                val token = tokenResponse.optString("access_token")
-                val workspaceName = tokenResponse.optString("workspace_name", "Notion Workspace")
-                
-                if (token.isNotEmpty()) {
-                    authDataStore.saveNotionAuth(token, AppConfig.NOTION_DATABASE_ID, workspaceName)
-                    Result.success(Unit)
-                } else {
-                    Result.failure(Exception("No token in response"))
-                }
-            } else {
-                Result.failure(Exception("HTTP ${response.code} ${response.body?.string()}"))
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error logging in", e)
-            Result.failure(e)
-        }
-    }
 
     override suspend fun initializeGoogleSheetIfNeeded(account: android.accounts.Account?): Result<Unit> {
         if (account == null) return Result.failure(Exception("No Google account provided"))
