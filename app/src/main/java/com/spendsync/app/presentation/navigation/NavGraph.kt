@@ -8,26 +8,15 @@ import com.spendsync.app.presentation.screens.addexpense.AddExpenseScreen
 import com.spendsync.app.presentation.screens.history.HistoryScreen
 import com.spendsync.app.presentation.screens.home.HomeScreen
 import com.spendsync.app.presentation.screens.settings.SettingsScreen
-import com.spendsync.app.presentation.screens.login.LoginScreen
 
 @Composable
 fun SpendSyncNavGraph(
-    navController: NavHostController,
-    isLoggedIn: Boolean
+    navController: NavHostController
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Login.route
+        startDestination = Screen.Home.route
     ) {
-        composable(Screen.Login.route) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToAddExpense = {

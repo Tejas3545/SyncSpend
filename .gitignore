@@ -1,0 +1,22 @@
+# Gradle and Android build outputs
+.gradle/
+**/build/
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Signing and credentials
+*.jks
+*.keystore
+client_secret_*.json
+google-services.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local databases and generated artifacts
+*.sqlite
+*.db
