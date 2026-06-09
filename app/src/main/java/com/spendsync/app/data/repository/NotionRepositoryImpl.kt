@@ -1,6 +1,5 @@
 package com.spendsync.app.data.repository
 
-import com.spendsync.app.AppConfig
 import com.spendsync.app.data.local.datastore.AuthDataStore
 import com.spendsync.app.data.remote.notion.models.*
 import com.spendsync.app.data.remote.notion.NotionApiService
@@ -19,10 +18,7 @@ class NotionRepositoryImpl @Inject constructor(
     private val authDataStore: AuthDataStore
 ) : NotionRepository {
 
-    private suspend fun getActiveDatabaseId(): String? {
-        val storeId = authDataStore.notionDatabaseId.first()
-        return if (!storeId.isNullOrEmpty()) storeId else AppConfig.NOTION_DATABASE_ID
-    }
+    private suspend fun getActiveDatabaseId(): String? = authDataStore.notionDatabaseId.first()
 
     override suspend fun syncUnsyncedExpenses() {
         val token = authDataStore.notionToken.first()
@@ -61,7 +57,7 @@ class NotionRepositoryImpl @Inject constructor(
     override suspend fun testConnection(): Boolean {
         val databaseId = getActiveDatabaseId()
         if (databaseId.isNullOrEmpty()) return false
-        
+
         return try {
             val response = notionApiService.getDatabase(databaseId)
             response.isSuccessful
@@ -70,6 +66,57 @@ class NotionRepositoryImpl @Inject constructor(
         } catch (e: IOException) {
             false
         }
+    }
+
+    override suspend fun initializeWorkspaceDatabase(): Result<String> {
+        val token = authDataStore.notionToken.first()
+        if (token.isNullOrBlank()) return Result.failure(IOException("Connect Notion before creating a database."))
+
+        val existingDatabaseId = getActiveDatabaseId()
+        if (!existingDatabaseId.isNullOrBlank() && testConnection()) {
+            return Result.success(existingDatabaseId)
+        }
+
+        return try {
+            val searchResponse = notionApiService.search(
+                mapOf(
+                    "filter" to mapOf("property" to "object", "value" to "page"),
+                    "page_size" to 1
+                )
+            )
+            if (!searchResponse.isSuccessful) {
+                return Result.failure(HttpException(searchResponse))
+            }
+            val parentPageId = searchResponse.body()?.results?.firstOrNull()?.id
+                ?: return Result.failure(IOException("No shared Notion page found. Share one empty page with SyncSpend during Notion login."))
+
+            val createResponse = notionApiService.createDatabase(buildExpenseDatabaseRequest(parentPageId))
+            if (!createResponse.isSuccessful) {
+                return Result.failure(HttpException(createResponse))
+            }
+            val databaseId = createResponse.body()?.id
+                ?: return Result.failure(IOException("Notion returned an empty database response."))
+            authDataStore.saveNotionAuth(token, databaseId, null)
+            Result.success(databaseId)
+        } catch (e: Exception) {
+            Log.e("NotionRepository", "Failed to initialize Notion workspace", e)
+            Result.failure(e)
+        }
+    }
+
+    private fun buildExpenseDatabaseRequest(parentPageId: String): Map<String, Any> {
+        val title = listOf(mapOf("type" to "text", "text" to mapOf("content" to "SyncSpend Expenses")))
+        return mapOf(
+            "parent" to mapOf("type" to "page_id", "page_id" to parentPageId),
+            "title" to title,
+            "properties" to mapOf(
+                "Name" to mapOf("title" to emptyMap<String, Any>()),
+                "Amount" to mapOf("number" to mapOf("format" to "number")),
+                "Category" to mapOf("select" to mapOf("options" to emptyList<Any>())),
+                "Payment" to mapOf("select" to mapOf("options" to emptyList<Any>())),
+                "Date" to mapOf("date" to emptyMap<String, Any>())
+            )
+        )
     }
 
     private fun Expense.toNotionCreateRequest(databaseId: String): NotionCreatePageRequest {

@@ -6,5 +6,5 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class NotionPage(
     @Json(name = "id") val id: String,
-    @Json(name = "properties") val properties: Map<String, NotionPropertyValue>
+    @Json(name = "properties") val properties: Map<String, NotionPropertyValue> = emptyMap()
 )

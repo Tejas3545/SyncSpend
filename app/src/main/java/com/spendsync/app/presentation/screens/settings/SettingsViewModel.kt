@@ -105,6 +105,11 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(message = "Sync queued. It will run as soon as a network is available.")
     }
 
+    fun logout() = viewModelScope.launch {
+        authRepository.logout()
+        _uiState.value = _uiState.value.copy(message = "Logged out. Connect Google or Notion again to resume syncing.")
+    }
+
     fun clearMessage() { _uiState.value = _uiState.value.copy(message = null) }
 
     private fun enqueue(name: String, request: androidx.work.OneTimeWorkRequest) {

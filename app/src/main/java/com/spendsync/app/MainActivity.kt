@@ -11,10 +11,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
+import com.spendsync.app.data.local.datastore.AuthDataStore
 import com.spendsync.app.data.local.datastore.SettingsDataStore
 import com.spendsync.app.presentation.navigation.Screen
 import com.spendsync.app.presentation.navigation.SpendSyncNavGraph
@@ -28,6 +31,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settingsDataStore: SettingsDataStore
 
+    @Inject
+    lateinit var authDataStore: AuthDataStore
+
     private var keepSplashOnScreen = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +45,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val themePreference by settingsDataStore.theme.collectAsState(initial = null)
+            val isLoggedIn by authDataStore.isLoggedIn.collectAsState(initial = false)
+            val notionRedirectUri = remember { mutableStateOf(intent?.data) }
             if (themePreference != null) {
                 keepSplashOnScreen = false
 
@@ -54,7 +62,16 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         val navController = rememberNavController()
+                        LaunchedEffect(isLoggedIn) {
+                            if (!isLoggedIn) {
+                                navController.navigate(Screen.Auth.route) {
+                                    popUpTo(Screen.Home.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
                         LaunchedEffect(intent?.action, intent?.data) {
+                            notionRedirectUri.value = intent?.data
                             val isAddExpenseIntent = intent?.action == "com.spendsync.app.ADD_EXPENSE" ||
                                 (intent?.action == Intent.ACTION_VIEW &&
                                     intent?.data?.scheme == "syncspend" &&
@@ -63,7 +80,17 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Screen.AddExpense.route)
                             }
                         }
-                        SpendSyncNavGraph(navController = navController)
+                        SpendSyncNavGraph(
+                            navController = navController,
+                            isLoggedIn = isLoggedIn,
+                            notionRedirectUri = notionRedirectUri.value,
+                            onAuthContinue = {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Auth.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
                     }
                 }
             }

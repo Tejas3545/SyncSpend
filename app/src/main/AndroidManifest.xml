@@ -27,6 +27,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+
+            <!-- Notion OAuth callback from secure token-exchange redirect -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="syncspend"
+                    android:host="notion-auth" />
+            </intent-filter>
+
             <!-- Shortcuts -->
             <meta-data
                 android:name="android.app.shortcuts"
