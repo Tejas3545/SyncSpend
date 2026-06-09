@@ -6,5 +6,5 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class NotionQueryResponse(
     @Json(name = "results") val results: List<NotionPage>,
-    @Json(name = "has_more") val hasMore: Boolean
+    @Json(name = "has_more") val hasMore: Boolean = false
 )

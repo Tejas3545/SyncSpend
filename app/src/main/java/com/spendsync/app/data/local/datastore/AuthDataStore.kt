@@ -45,9 +45,10 @@ class AuthDataStore @Inject constructor(
 
     suspend fun saveNotionAuth(token: String, databaseId: String, name: String?) {
         dataStore.edit {
-            it[IS_LOGGED_IN] = true
             it[NOTION_TOKEN] = token
             it[NOTION_DATABASE_ID] = databaseId
+            val hasGoogle = !it[USER_EMAIL].isNullOrBlank() && !it[GOOGLE_SHEET_ID].isNullOrBlank()
+            it[IS_LOGGED_IN] = hasGoogle || (token.isNotBlank() && databaseId.isNotBlank())
             if (name != null) it[USER_NAME] = name
         }
     }
@@ -57,7 +58,6 @@ class AuthDataStore @Inject constructor(
             if (email != null && it[USER_EMAIL] != null && it[USER_EMAIL] != email) {
                 it.remove(GOOGLE_SHEET_ID)
             }
-            it[IS_LOGGED_IN] = true
             if (name != null) it[USER_NAME] = name
             if (email != null) it[USER_EMAIL] = email
             if (dpUrl != null) it[USER_DP] = dpUrl
@@ -67,6 +67,7 @@ class AuthDataStore @Inject constructor(
     suspend fun saveGoogleSheetId(sheetId: String) {
         dataStore.edit {
             it[GOOGLE_SHEET_ID] = sheetId
+            it[IS_LOGGED_IN] = sheetId.isNotBlank()
         }
     }
 
@@ -74,6 +75,8 @@ class AuthDataStore @Inject constructor(
         dataStore.edit {
             it.remove(NOTION_TOKEN)
             it.remove(NOTION_DATABASE_ID)
+            val hasGoogle = !it[USER_EMAIL].isNullOrBlank() && !it[GOOGLE_SHEET_ID].isNullOrBlank()
+            it[IS_LOGGED_IN] = hasGoogle
         }
     }
 
@@ -83,6 +86,8 @@ class AuthDataStore @Inject constructor(
             it.remove(USER_EMAIL)
             it.remove(USER_DP)
             it.remove(GOOGLE_SHEET_ID)
+            val hasNotion = !it[NOTION_TOKEN].isNullOrBlank() && !it[NOTION_DATABASE_ID].isNullOrBlank()
+            it[IS_LOGGED_IN] = hasNotion
         }
     }
 

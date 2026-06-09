@@ -32,12 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.spendsync.app.util.DateUtils
 import java.util.Locale
 
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
-import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -271,46 +265,56 @@ fun SpendingSummaryCard(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Custom Premium Stick Chart
+            // Minimal iOS-style stick chart with soft grid lines.
             val chartEntries = chartData.toSortedMap().values.toList().takeLast(7).map { it.toFloat() }
-            if (chartEntries.isNotEmpty()) {
-                val primaryColor = MaterialTheme.colorScheme.primary
-                androidx.compose.foundation.Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .padding(vertical = 8.dp)
-                ) {
-                    val maxVal = chartEntries.maxOrNull() ?: 1f
-                    val safeMax = if (maxVal == 0f) 1f else maxVal
-                    val barWidth = 10.dp.toPx()
-                    
-                    val totalBarsWidth = barWidth * chartEntries.size
-                    val totalSpacing = size.width - totalBarsWidth
-                    val spacing = if (chartEntries.size > 1) totalSpacing / (chartEntries.size - 1) else 0f
+            val displayEntries = if (chartEntries.isEmpty()) List(7) { 0f } else chartEntries
+            val barColor = MaterialTheme.colorScheme.onSurface
+            val trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
+            val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(156.dp)
+                    .padding(vertical = 8.dp)
+            ) {
+                val maxVal = displayEntries.maxOrNull() ?: 1f
+                val safeMax = if (maxVal == 0f) 1f else maxVal
+                val barWidth = 18.dp.toPx()
+                val totalBarsWidth = barWidth * displayEntries.size
+                val spacing = if (displayEntries.size > 1) {
+                    (size.width - totalBarsWidth).coerceAtLeast(0f) / (displayEntries.size - 1)
+                } else {
+                    0f
+                }
 
-                    chartEntries.forEachIndexed { index, value ->
-                        val x = index * (barWidth + spacing)
-                        val barHeight = (value / safeMax) * size.height
-                        val y = size.height - barHeight
-                        
-                        // Background track
+                repeat(4) { index ->
+                    val y = size.height * (index + 1) / 5f
+                    drawLine(
+                        color = gridColor,
+                        start = androidx.compose.ui.geometry.Offset(0f, y),
+                        end = androidx.compose.ui.geometry.Offset(size.width, y),
+                        strokeWidth = 1.dp.toPx()
+                    )
+                }
+
+                displayEntries.forEachIndexed { index, value ->
+                    val x = index * (barWidth + spacing)
+                    val normalizedHeight = if (value > 0f) (value / safeMax) * size.height else 0f
+                    val barHeight = normalizedHeight.coerceAtLeast(if (value > 0f) 12.dp.toPx() else 0f)
+                    val y = size.height - barHeight
+                    drawRoundRect(
+                        color = trackColor,
+                        topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
+                        size = androidx.compose.ui.geometry.Size(barWidth, size.height),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)
+                    )
+                    if (value > 0f) {
                         drawRoundRect(
-                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.05f),
-                            topLeft = androidx.compose.ui.geometry.Offset(x, 0f),
-                            size = androidx.compose.ui.geometry.Size(barWidth, size.height),
+                            color = barColor,
+                            topLeft = androidx.compose.ui.geometry.Offset(x, y),
+                            size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
                             cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)
                         )
-                        
-                        // Active bar stick
-                        if (value > 0f) {
-                            drawRoundRect(
-                                color = primaryColor,
-                                topLeft = androidx.compose.ui.geometry.Offset(x, y),
-                                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2, barWidth / 2)
-                            )
-                        }
                     }
                 }
             }
