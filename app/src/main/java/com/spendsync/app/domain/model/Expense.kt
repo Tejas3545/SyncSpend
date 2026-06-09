@@ -10,5 +10,8 @@ data class Expense(
     val paymentMethod: PaymentMethod?,
     val date: LocalDate,
     val isSynced: Boolean,
-    val notionPageId: String?
+    val notionPageId: String?,
+    val notionSynced: Boolean = false,
+    val googleSynced: Boolean = false,
+    val lastSyncError: String? = null
 )

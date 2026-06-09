@@ -2,6 +2,8 @@ package com.spendsync.app.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.spendsync.app.data.local.db.SyncSpendDatabase
 import com.spendsync.app.data.local.db.dao.CategoryDao
 import com.spendsync.app.data.local.db.dao.ExpenseDao
@@ -25,8 +27,17 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SyncSpendDatabase {
+        val migration1To2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE expenses ADD COLUMN notionSynced INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE expenses ADD COLUMN googleSynced INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE expenses ADD COLUMN lastSyncError TEXT")
+                db.execSQL("UPDATE expenses SET googleSynced = isSynced WHERE notionPageId LIKE '%!%' OR notionPageId = 'google_sheet_synced'")
+                db.execSQL("UPDATE expenses SET notionSynced = isSynced WHERE notionPageId IS NOT NULL AND notionPageId NOT LIKE 'error%' AND notionPageId NOT LIKE '%!%' AND notionPageId != 'google_sheet_synced'")
+            }
+        }
         val db = Room.databaseBuilder(context, SyncSpendDatabase::class.java, "syncspend.db")
-            .fallbackToDestructiveMigration()
+            .addMigrations(migration1To2)
             .build()
         
         // Seed default data

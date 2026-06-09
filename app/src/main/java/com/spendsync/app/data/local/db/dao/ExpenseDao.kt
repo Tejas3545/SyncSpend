@@ -10,37 +10,45 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
-    
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(expense: ExpenseEntity)
-    
+
     @Update
     suspend fun update(expense: ExpenseEntity)
-    
+
     @Query("DELETE FROM expenses WHERE id = :id")
     suspend fun deleteById(id: String)
-    
+
     @Query("SELECT * FROM expenses ORDER BY date DESC, createdAt DESC")
     fun getAllExpenses(): Flow<List<ExpenseEntity>>
-    
+
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpenseById(id: String): ExpenseEntity?
-    
-    @Query("SELECT * FROM expenses WHERE isSynced = 0")
-    suspend fun getUnsyncedExpenses(): List<ExpenseEntity>
-    
-    @Query("UPDATE expenses SET notionPageId = :notionPageId, isSynced = CASE WHEN :notionPageId = 'error' THEN 0 ELSE 1 END WHERE id = :id")
-    suspend fun markAsSynced(id: String, notionPageId: String)
-    
+
+    @Query("SELECT * FROM expenses WHERE notionSynced = 0 ORDER BY createdAt ASC")
+    suspend fun getPendingNotionExpenses(): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expenses WHERE googleSynced = 0 ORDER BY createdAt ASC")
+    suspend fun getPendingGoogleExpenses(): List<ExpenseEntity>
+
+    @Query("UPDATE expenses SET notionPageId = :pageId, notionSynced = 1, isSynced = 1, lastSyncError = NULL WHERE id = :id")
+    suspend fun markNotionSynced(id: String, pageId: String)
+
+    @Query("UPDATE expenses SET googleSynced = 1, isSynced = 1, lastSyncError = NULL WHERE id = :id")
+    suspend fun markGoogleSynced(id: String)
+
+    @Query("UPDATE expenses SET lastSyncError = :message WHERE id = :id")
+    suspend fun recordSyncError(id: String, message: String)
+
     @Query("SELECT * FROM expenses WHERE name LIKE :prefix || '%' GROUP BY name ORDER BY createdAt DESC LIMIT 5")
     fun getFullSuggestions(prefix: String): Flow<List<ExpenseEntity>>
-    
+
     @Query("SELECT * FROM expenses WHERE date >= :startDate AND date <= :endDate ORDER BY date DESC")
     fun getExpensesByDateRange(startDate: Long, endDate: Long): Flow<List<ExpenseEntity>>
-    
+
     @Query("SELECT SUM(amount) FROM expenses")
     suspend fun getTotalSpending(): Double?
-    
+
     @Query("SELECT SUM(amount) FROM expenses WHERE date >= :startDate")
     suspend fun getTotalSpendingSince(startDate: Long): Double?
 }

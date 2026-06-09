@@ -32,7 +32,8 @@ object NotionMapper {
             },
             date = date,
             isSynced = true,
-            notionPageId = this.id
+            notionPageId = this.id,
+            notionSynced = true
         )
     }
 }

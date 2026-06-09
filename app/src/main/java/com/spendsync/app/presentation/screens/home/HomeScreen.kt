@@ -422,28 +422,18 @@ fun ExpenseItem(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            if (!expense.isSynced) {
-                if (expense.notionPageId?.startsWith("error") == true) {
-                    val errMsg = expense.notionPageId.removePrefix("error").removePrefix(": ").trim()
-                    Text(
-                        text  = if (errMsg.isNotEmpty()) "Failed: $errMsg" else "Failed",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                } else {
-                    Text(
-                        text  = "Syncing...",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            } else {
-                Text(
-                    text  = if (expense.notionPageId?.contains("!") == true) "Synced: ${expense.notionPageId}" else "Synced",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF4CAF50).copy(alpha = 0.7f)
-                )
+            val syncLabel = when {
+                expense.notionSynced && expense.googleSynced -> "Google + Notion"
+                expense.notionSynced -> "Notion"
+                expense.googleSynced -> "Google Sheets"
+                expense.lastSyncError != null -> "Waiting to retry"
+                else -> "Saved offline"
             }
+            Text(
+                text = syncLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (expense.isSynced) Color(0xFF34C759) else MaterialTheme.colorScheme.onSurfaceVariant
+            )
             if (onDelete != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Icon(

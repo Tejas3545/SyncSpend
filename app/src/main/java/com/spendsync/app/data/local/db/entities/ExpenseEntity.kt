@@ -13,5 +13,8 @@ data class ExpenseEntity(
     val date: Long,
     val notionPageId: String?,
     val isSynced: Boolean = false,
+    val notionSynced: Boolean = false,
+    val googleSynced: Boolean = false,
+    val lastSyncError: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

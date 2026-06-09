@@ -54,6 +54,9 @@ class AuthDataStore @Inject constructor(
 
     suspend fun saveGoogleInfo(name: String?, email: String?, dpUrl: String?) {
         dataStore.edit {
+            if (email != null && it[USER_EMAIL] != null && it[USER_EMAIL] != email) {
+                it.remove(GOOGLE_SHEET_ID)
+            }
             it[IS_LOGGED_IN] = true
             if (name != null) it[USER_NAME] = name
             if (email != null) it[USER_EMAIL] = email
@@ -64,6 +67,22 @@ class AuthDataStore @Inject constructor(
     suspend fun saveGoogleSheetId(sheetId: String) {
         dataStore.edit {
             it[GOOGLE_SHEET_ID] = sheetId
+        }
+    }
+
+    suspend fun clearNotionAuth() {
+        dataStore.edit {
+            it.remove(NOTION_TOKEN)
+            it.remove(NOTION_DATABASE_ID)
+        }
+    }
+
+    suspend fun clearGoogleAuth() {
+        dataStore.edit {
+            it.remove(USER_NAME)
+            it.remove(USER_EMAIL)
+            it.remove(USER_DP)
+            it.remove(GOOGLE_SHEET_ID)
         }
     }
 

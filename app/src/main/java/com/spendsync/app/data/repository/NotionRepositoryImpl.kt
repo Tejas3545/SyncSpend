@@ -31,26 +31,19 @@ class NotionRepositoryImpl @Inject constructor(
         val databaseId = getActiveDatabaseId()
         if (databaseId.isNullOrEmpty()) return
         
-        val unsyncedExpenses = expenseRepository.getUnsyncedExpenses()
+        val unsyncedExpenses = expenseRepository.getPendingNotionExpenses()
         
         unsyncedExpenses.forEach { expense ->
-            try {
-                val request = expense.toNotionCreateRequest(databaseId)
-                val response = notionApiService.createPage(request)
-                
-                if (response.isSuccessful || response.code() == 200) {
-                    val body = response.body()
-                    if (body != null) {
-                        expenseRepository.markAsSynced(expense.id, body.id)
-                    }
-                } else {
-                    Log.e("NotionRepository", "Notion sync failed for ${expense.name}: ${response.code()} ${response.errorBody()?.string()}")
-                    expenseRepository.markAsSynced(expense.id, "error")
-                }
-            } catch (e: Exception) {
-                Log.e("NotionRepository", "Error syncing", e)
-                expenseRepository.markAsSynced(expense.id, "error")
+            val request = expense.toNotionCreateRequest(databaseId)
+            val response = notionApiService.createPage(request)
+            if (!response.isSuccessful) {
+                val message = "Notion ${response.code()}: ${response.errorBody()?.string().orEmpty().take(120)}"
+                expenseRepository.recordSyncError(expense.id, message)
+                throw HttpException(response)
             }
+            val pageId = response.body()?.id
+                ?: throw IOException("Notion returned an empty page response")
+            expenseRepository.markNotionSynced(expense.id, pageId)
         }
     }
 
