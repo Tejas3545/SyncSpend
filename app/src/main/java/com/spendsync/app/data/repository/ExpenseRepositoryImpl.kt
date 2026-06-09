@@ -36,13 +36,19 @@ class ExpenseRepositoryImpl @Inject constructor(
         expenseDao.deleteById(id)
     }
 
-    override suspend fun getUnsyncedExpenses(): List<Expense> {
-        return expenseDao.getUnsyncedExpenses().map { it.toDomainModel() }
-    }
+    override suspend fun getPendingNotionExpenses(): List<Expense> =
+        expenseDao.getPendingNotionExpenses().map { it.toDomainModel() }
 
-    override suspend fun markAsSynced(id: String, notionPageId: String) {
-        expenseDao.markAsSynced(id, notionPageId)
-    }
+    override suspend fun getPendingGoogleExpenses(): List<Expense> =
+        expenseDao.getPendingGoogleExpenses().map { it.toDomainModel() }
+
+    override suspend fun markNotionSynced(id: String, pageId: String) =
+        expenseDao.markNotionSynced(id, pageId)
+
+    override suspend fun markGoogleSynced(id: String) = expenseDao.markGoogleSynced(id)
+
+    override suspend fun recordSyncError(id: String, message: String) =
+        expenseDao.recordSyncError(id, message)
 
     override fun getSuggestions(prefix: String): Flow<List<Expense>> {
         return expenseDao.getFullSuggestions(prefix).map { entities ->
@@ -103,8 +109,11 @@ class ExpenseRepositoryImpl @Inject constructor(
                 PaymentMethod(id = it.id, name = it.name)
             },
             date = LocalDate.ofEpochDay(date / (24 * 60 * 60 * 1000)),
-            isSynced = isSynced,
-            notionPageId = notionPageId
+            isSynced = notionSynced || googleSynced,
+            notionPageId = notionPageId,
+            notionSynced = notionSynced,
+            googleSynced = googleSynced,
+            lastSyncError = lastSyncError
         )
     }
 
@@ -117,7 +126,10 @@ class ExpenseRepositoryImpl @Inject constructor(
             paymentMethodId = paymentMethod?.id,
             date = date.toEpochDay() * 24 * 60 * 60 * 1000,
             notionPageId = notionPageId,
-            isSynced = isSynced
+            isSynced = isSynced,
+            notionSynced = notionSynced,
+            googleSynced = googleSynced,
+            lastSyncError = lastSyncError
         )
     }
 }

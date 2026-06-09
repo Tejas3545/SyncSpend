@@ -44,6 +44,14 @@ A 100% free, native Android expense tracking application with Notion sync. No su
 ./gradlew assembleDebug
 ```
 
+## Google Sheets + offline sync
+
+1. Open **Settings → Google Sheets → Connect** and choose a Google account.
+2. Approve Drive-file and Sheets access. SyncSpend creates a private `SyncSpend Expenses` spreadsheet owned by that account.
+3. Add expenses normally, with or without a network connection. Every expense is committed to Room first.
+4. When connectivity is available, WorkManager automatically drains the independent Google Sheets and Notion queues. Google rows are keyed by expense ID to prevent duplicate appends during retries.
+5. You can connect Google Sheets, Notion, both, or neither. Disconnecting a destination never deletes local or previously uploaded data.
+
 ## Setting Up Notion Integration
 
 To enable Notion sync:

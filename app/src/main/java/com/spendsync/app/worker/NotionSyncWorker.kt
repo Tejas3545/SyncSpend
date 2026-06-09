@@ -7,7 +7,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
-import com.spendsync.app.domain.repository.ExpenseRepository
 import com.spendsync.app.domain.repository.NotionRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -19,7 +18,6 @@ import java.util.concurrent.TimeUnit
 class NotionSyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val expenseRepository: ExpenseRepository,
     private val notionRepository: NotionRepository
 ) : CoroutineWorker(context, params) {
 

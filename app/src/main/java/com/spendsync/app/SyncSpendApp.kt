@@ -3,13 +3,11 @@ package com.spendsync.app
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.Constraints
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.spendsync.app.worker.NotionSyncWorker
+import com.spendsync.app.worker.GoogleSyncWorker
+import androidx.work.ExistingPeriodicWorkPolicy
 import dagger.hilt.android.HiltAndroidApp
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -31,16 +29,16 @@ class SyncSpendApp : Application(), Configuration.Provider {
     }
     
     private fun schedulePeriodicSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-        
-        val periodicWorkRequest = PeriodicWorkRequestBuilder<NotionSyncWorker>(
-            15, TimeUnit.MINUTES
+        val workManager = WorkManager.getInstance(this)
+        workManager.enqueueUniquePeriodicWork(
+            NotionSyncWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            NotionSyncWorker.buildPeriodicRequest()
         )
-            .setConstraints(constraints)
-            .build()
-        
-        WorkManager.getInstance(this).enqueue(periodicWorkRequest)
+        workManager.enqueueUniquePeriodicWork(
+            GoogleSyncWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            GoogleSyncWorker.buildPeriodicRequest()
+        )
     }
 }

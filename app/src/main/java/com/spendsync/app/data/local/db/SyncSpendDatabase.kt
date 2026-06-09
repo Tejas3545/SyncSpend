@@ -15,7 +15,7 @@ import com.spendsync.app.data.local.db.entities.PaymentMethodEntity
         CategoryEntity::class,
         PaymentMethodEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class SyncSpendDatabase : RoomDatabase() {
