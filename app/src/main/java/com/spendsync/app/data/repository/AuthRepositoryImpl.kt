@@ -3,6 +3,7 @@ package com.spendsync.app.data.repository
 import com.spendsync.app.data.local.datastore.AuthDataStore
 import com.spendsync.app.domain.repository.AuthRepository
 import android.util.Log
+import com.google.api.services.drive.Drive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -51,13 +52,33 @@ class AuthRepositoryImpl @Inject constructor(
                 val sheetsService = com.google.api.services.sheets.v4.Sheets.Builder(
                     transport, jsonFactory, credential
                 ).setApplicationName("SyncSpend").build()
+                val driveService = Drive.Builder(transport, jsonFactory, credential)
+                    .setApplicationName("SyncSpend")
+                    .build()
 
-                val spreadsheet = com.google.api.services.sheets.v4.model.Spreadsheet()
-                    .setProperties(com.google.api.services.sheets.v4.model.SpreadsheetProperties().setTitle("SyncSpend Expenses"))
-                
-                val createdSpreadsheet = sheetsService.spreadsheets().create(spreadsheet).execute()
-                val spreadsheetId = createdSpreadsheet.spreadsheetId
-                val sheetName = createdSpreadsheet.sheets.first().properties.title
+                val existingFile = driveService.files().list()
+                    .setQ("name = 'SyncSpend Expenses' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false")
+                    .setSpaces("drive")
+                    .setFields("files(id, name, modifiedTime)")
+                    .setOrderBy("modifiedTime desc")
+                    .execute()
+                    .files
+                    .orEmpty()
+                    .firstOrNull()
+
+                val spreadsheetId: String
+                val sheetName: String
+                if (existingFile != null) {
+                    spreadsheetId = existingFile.id
+                    val existingSpreadsheet = sheetsService.spreadsheets().get(spreadsheetId).execute()
+                    sheetName = existingSpreadsheet.sheets.first().properties.title
+                } else {
+                    val spreadsheet = com.google.api.services.sheets.v4.model.Spreadsheet()
+                        .setProperties(com.google.api.services.sheets.v4.model.SpreadsheetProperties().setTitle("SyncSpend Expenses"))
+                    val createdSpreadsheet = sheetsService.spreadsheets().create(spreadsheet).execute()
+                    spreadsheetId = createdSpreadsheet.spreadsheetId
+                    sheetName = createdSpreadsheet.sheets.first().properties.title
+                }
 
                 val values = listOf(
                     listOf("ID", "Name", "Amount", "Category", "Payment Method", "Date", "Time")

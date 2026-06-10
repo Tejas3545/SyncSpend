@@ -8,9 +8,9 @@
         android:shortcutLongLabel="@string/shortcut_add_long"
         android:shortcutDisabledMessage="@string/shortcut_disabled">
         <intent
-            android:action="com.spendsync.app.QUICK_ADD"
+            android:action="com.spendsync.app.ADD_EXPENSE"
             android:targetPackage="com.spendsync.app"
-            android:targetClass="com.spendsync.app.presentation.screens.addexpense.QuickAddActivity" />
+            android:targetClass="com.spendsync.app.MainActivity" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
 </shortcuts>

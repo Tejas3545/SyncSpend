@@ -1,5 +1,7 @@
 package com.spendsync.app.presentation.screens.settings
 
+import android.content.Intent
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,12 +43,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +61,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -87,8 +93,10 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            ProfileCard(state)
+
             Text(
-                "Sync destinations now live on the splash login screen. Settings is only for preferences, sync health, and ending your session.",
+                "Connect one or both services. Expenses are stored on this phone first and uploaded to connected destinations when network is available.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -100,8 +108,18 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    StatusRow("Google Sheets", if (state.googleConnected) state.googleEmail else "Not connected", state.googleConnected, "G")
-                    StatusRow("Notion", if (state.notionConnected) "Database • ${state.notionDatabaseId.take(8)}…" else "Not connected", state.notionConnected, "N")
+                    StatusRow("Google Sheets", if (state.googleConnected) state.googleEmail else "Connect from login", state.googleConnected, "G")
+                    StatusRow(
+                        "Notion",
+                        if (state.notionConnected) "Database • ${state.notionDatabaseId.take(8)}…" else "Send expenses to your Notion database",
+                        state.notionConnected,
+                        "N",
+                        onAction = {
+                            viewModel.buildNotionAuthUri()?.let { uri ->
+                                context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            }
+                        }
+                    )
                     if (state.googleConnected || state.notionConnected) {
                         Button(
                             onClick = viewModel::syncNow,
@@ -183,7 +201,35 @@ private fun SettingsLabel(text: String) {
 }
 
 @Composable
-private fun StatusRow(title: String, subtitle: String, connected: Boolean, monogram: String) {
+private fun ProfileCard(state: SettingsUiState) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (state.userDp.isNotBlank()) {
+                AsyncImage(
+                    model = state.userDp,
+                    contentDescription = "Profile photo",
+                    modifier = Modifier.size(58.dp).clip(CircleShape)
+                )
+            } else {
+                Box(Modifier.size(58.dp).background(MaterialTheme.colorScheme.surface, CircleShape), contentAlignment = Alignment.Center) {
+                    Text((state.userName.ifBlank { state.googleEmail }.firstOrNull()?.uppercase() ?: "S"), fontWeight = FontWeight.Black)
+                }
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(state.userName.ifBlank { "SyncSpend user" }, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(state.googleEmail.ifBlank { "No Google profile connected" }, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusRow(title: String, subtitle: String, connected: Boolean, monogram: String, onAction: (() -> Unit)? = null) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(46.dp).background(MaterialTheme.colorScheme.surface, CircleShape), contentAlignment = Alignment.Center) {
             Text(monogram, fontWeight = FontWeight.Black, color = if (monogram == "G") Color(0xFF4285F4) else MaterialTheme.colorScheme.onSurface)
@@ -193,8 +239,12 @@ private fun StatusRow(title: String, subtitle: String, connected: Boolean, monog
             Text(title, fontWeight = FontWeight.SemiBold)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Surface(color = if (connected) Color(0xFF34C759).copy(alpha = .14f) else MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp)) {
-            Text(if (connected) "Connected" else "Login", Modifier.padding(horizontal = 11.dp, vertical = 7.dp), color = if (connected) Color(0xFF248A3D) else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+        Surface(
+            modifier = if (!connected && onAction != null) Modifier.clickable { onAction() } else Modifier,
+            color = if (connected) Color(0xFF34C759).copy(alpha = .14f) else MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Text(if (connected) "Connected" else "Connect", Modifier.padding(horizontal = 11.dp, vertical = 7.dp), color = if (connected) Color(0xFF248A3D) else MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }
     }
 }

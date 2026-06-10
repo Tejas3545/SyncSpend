@@ -11,8 +11,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.LocalGasStation
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -25,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,12 +58,31 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var ledgerMode by remember { mutableStateOf("Personal") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text("SyncSpend", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("SyncSpend", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Surface(
+                            modifier = Modifier.clickable {
+                                ledgerMode = when (ledgerMode) {
+                                    "Personal" -> "Business"
+                                    "Business" -> "All"
+                                    else -> "Personal"
+                                }
+                            },
+                            shape = RoundedCornerShape(18.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                        ) {
+                            Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(ledgerMode, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                                Icon(Icons.Default.KeyboardArrowDown, null, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
                 },
                 actions = {
                     IconButton(onClick = { isSearchActive = !isSearchActive }) {
@@ -139,9 +172,16 @@ fun HomeScreen(
                         }
 
                         uiState.groupedExpenses.forEach { (date, expenses) ->
-                            val filteredExpenses = expenses.filter { 
-                                it.name.contains(searchQuery, ignoreCase = true) || 
-                                it.category.name.contains(searchQuery, ignoreCase = true) 
+                            val filteredExpenses = expenses.filter { expense ->
+                                val matchesSearch = expense.name.contains(searchQuery, ignoreCase = true) ||
+                                    expense.category.name.contains(searchQuery, ignoreCase = true)
+                                val businessKey = "${expense.name} ${expense.category.name}".lowercase(Locale.getDefault())
+                                val matchesLedger = when (ledgerMode) {
+                                    "Business" -> listOf("business", "work", "office", "client", "team").any { it in businessKey }
+                                    "Personal" -> listOf("business", "work", "office", "client", "team").none { it in businessKey }
+                                    else -> true
+                                }
+                                matchesSearch && matchesLedger
                             }
                             
                             if (filteredExpenses.isNotEmpty()) {
@@ -267,7 +307,7 @@ fun SpendingSummaryCard(
 
             // Minimal iOS-style stick chart with soft grid lines.
             val chartEntries = chartData.toSortedMap().values.toList().takeLast(7).map { it.toFloat() }
-            val displayEntries = if (chartEntries.isEmpty()) List(7) { 0f } else chartEntries
+            val displayEntries = if (chartEntries.size >= 7) chartEntries else List(7 - chartEntries.size) { 0f } + chartEntries
             val barColor = MaterialTheme.colorScheme.onSurface
             val trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
             val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
@@ -319,49 +359,40 @@ fun SpendingSummaryCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Insight Card
-            Surface(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.TrendingUp,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            "Smart Insight",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            "Your spending is trending down this week.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat").forEach { label ->
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun expenseIcon(name: String, category: String): ImageVector {
+    val key = "${name.lowercase(Locale.getDefault())} ${category.lowercase(Locale.getDefault())}"
+    return when {
+        listOf("uber", "ola", "taxi", "cab", "car").any { it in key } -> Icons.Default.DirectionsCar
+        listOf("petrol", "gas", "fuel").any { it in key } -> Icons.Default.LocalGasStation
+        listOf("spotify", "music", "song").any { it in key } -> Icons.Default.MusicNote
+        listOf("coffee", "cafe").any { it in key } -> Icons.Default.LocalCafe
+        listOf("grocery", "groceries", "market", "basket").any { it in key } -> Icons.Default.ShoppingBasket
+        listOf("dinner", "lunch", "breakfast", "food", "restaurant", "drinks").any { it in key } -> Icons.Default.Restaurant
+        listOf("movie", "cinema", "entertainment").any { it in key } -> Icons.Default.Movie
+        listOf("rent", "home", "housing").any { it in key } -> Icons.Default.Home
+        listOf("doctor", "health", "medical", "pharmacy").any { it in key } -> Icons.Default.LocalHospital
+        listOf("electric", "utility", "utilities", "bill").any { it in key } -> Icons.Default.Bolt
+        listOf("flight", "travel", "hotel").any { it in key } -> Icons.Default.Flight
+        listOf("card", "upi", "payment").any { it in key } -> Icons.Default.CreditCard
+        listOf("personal").any { it in key } -> Icons.Default.Person
+        else -> Icons.Default.Category
     }
 }
 
@@ -389,9 +420,11 @@ fun ExpenseItem(
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text  = expense.category.emoji,
-                    fontSize = 22.sp
+                Icon(
+                    imageVector = expenseIcon(expense.name, expense.category.name),
+                    contentDescription = expense.category.name,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(23.dp)
                 )
             }
 
