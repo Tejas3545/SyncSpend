@@ -1,10 +1,12 @@
 package com.spendsync.app.presentation.screens.settings
 
 import android.accounts.Account
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
+import com.spendsync.app.AppConfig
 import com.spendsync.app.data.local.datastore.AuthDataStore
 import com.spendsync.app.data.local.datastore.SettingsDataStore
 import com.spendsync.app.domain.repository.AuthRepository
@@ -12,6 +14,7 @@ import com.spendsync.app.domain.repository.NotionRepository
 import com.spendsync.app.worker.GoogleSyncWorker
 import com.spendsync.app.worker.NotionSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.net.URLEncoder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,26 +36,47 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(
-                settingsDataStore.theme,
+            val profileFlow = combine(authDataStore.userName, authDataStore.userDp) { name, dp -> name to dp }
+            val authFlow = combine(
                 authDataStore.notionToken,
                 authDataStore.notionDatabaseId,
                 authDataStore.userEmail,
-                authDataStore.googleSheetId
-            ) { theme, notionToken, databaseId, email, sheetId ->
+                authDataStore.googleSheetId,
+                profileFlow
+            ) { notionToken, databaseId, email, sheetId, profile ->
+                AuthSettingsSnapshot(notionToken, databaseId, email, sheetId, profile.first, profile.second)
+            }
+            combine(settingsDataStore.theme, authFlow) { theme, auth ->
                 _uiState.value.copy(
                     theme = theme,
-                    notionConnected = !notionToken.isNullOrBlank() && !databaseId.isNullOrBlank(),
-                    notionDatabaseId = databaseId.orEmpty(),
-                    googleConnected = !email.isNullOrBlank() && !sheetId.isNullOrBlank(),
-                    googleEmail = email.orEmpty(),
-                    googleSheetId = sheetId.orEmpty()
+                    notionConnected = !auth.notionToken.isNullOrBlank() && !auth.databaseId.isNullOrBlank(),
+                    notionDatabaseId = auth.databaseId.orEmpty(),
+                    googleConnected = !auth.email.isNullOrBlank() && !auth.sheetId.isNullOrBlank(),
+                    googleEmail = auth.email.orEmpty(),
+                    googleSheetId = auth.sheetId.orEmpty(),
+                    userName = auth.name.orEmpty(),
+                    userDp = auth.dp.orEmpty()
                 )
             }.collect { _uiState.value = it }
         }
     }
 
     fun onThemeChanged(theme: String) = viewModelScope.launch { settingsDataStore.setTheme(theme) }
+
+    fun buildNotionAuthUri(): Uri? {
+        if (AppConfig.NOTION_OAUTH_CLIENT_ID.isBlank()) {
+            _uiState.value = _uiState.value.copy(message = "Add your Notion OAuth client id in AppConfig before connecting Notion.")
+            return null
+        }
+        val redirect = URLEncoder.encode(AppConfig.NOTION_REDIRECT_URI, "UTF-8")
+        return Uri.parse(
+            "https://api.notion.com/v1/oauth/authorize" +
+                "?client_id=${AppConfig.NOTION_OAUTH_CLIENT_ID}" +
+                "&response_type=code" +
+                "&owner=user" +
+                "&redirect_uri=$redirect"
+        )
+    }
 
     fun connectNotion(token: String, databaseId: String) {
         if (token.isBlank() || databaseId.isBlank()) {
@@ -117,6 +141,15 @@ class SettingsViewModel @Inject constructor(
     }
 }
 
+private data class AuthSettingsSnapshot(
+    val notionToken: String?,
+    val databaseId: String?,
+    val email: String?,
+    val sheetId: String?,
+    val name: String?,
+    val dp: String?
+)
+
 data class SettingsUiState(
     val theme: String = "system",
     val notionConnected: Boolean = false,
@@ -124,6 +157,8 @@ data class SettingsUiState(
     val googleConnected: Boolean = false,
     val googleEmail: String = "",
     val googleSheetId: String = "",
+    val userName: String = "",
+    val userDp: String = "",
     val isWorking: Boolean = false,
     val message: String? = null
 )
