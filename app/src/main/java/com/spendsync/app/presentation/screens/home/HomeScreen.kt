@@ -88,8 +88,16 @@ fun HomeScreen(
                     IconButton(onClick = { isSearchActive = !isSearchActive }) {
                         Icon(if (isSearchActive) Icons.Default.Close else Icons.Default.Search, contentDescription = "Search")
                     }
-                    IconButton(onClick = { /* Filter */ }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                    IconButton(
+                        onClick = {
+                            ledgerMode = when (ledgerMode) {
+                                "Personal" -> "Business"
+                                "Business" -> "All"
+                                else -> "Personal"
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Cycle ledger filter")
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")

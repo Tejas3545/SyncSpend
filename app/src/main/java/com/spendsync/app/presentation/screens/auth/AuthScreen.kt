@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,10 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.DateRange
@@ -120,48 +119,56 @@ fun AuthScreen(
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                PageDots(page = page, count = 4)
-                Spacer(Modifier.height(28.dp))
-                when (page) {
-                    0 -> WelcomePage(onNext = { page = 1 })
-                    1 -> FeaturePage(
-                        eyebrow = "SHORTCUTS",
-                        title = "Log expenses\nfrom anywhere.",
-                        body = "Android app shortcuts open the complete expense form so amount, date, name, category, and payment method are all captured.",
-                        icon = { ShortcutMock() },
-                        button = "Continue",
-                        onNext = { page = 2 }
-                    )
-                    2 -> FeaturePage(
-                        eyebrow = "WIDGETS",
-                        title = "Spending trends\nat a glance.",
-                        body = "Track weekly, monthly, and yearly totals with clean monochrome cards that respect light and dark mode.",
-                        icon = { WidgetMock() },
-                        button = "Continue",
-                        onNext = { page = 3 }
-                    )
-                    else -> LoginPanel(
-                        state = state,
-                        onGoogle = ::launchGooglePicker,
-                        onNotion = {
-                            viewModel.buildNotionAuthUri()?.let { uri ->
-                                context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                            }
-                        },
-                        onContinue = onContinue
-                    )
-                }
-                if (state.isWorking) {
-                    Spacer(Modifier.height(18.dp))
-                    CircularProgressIndicator()
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val compact = maxHeight < 760.dp
+                val pageGap = if (compact) 14.dp else 28.dp
+                val verticalPad = if (compact) 14.dp else 28.dp
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = verticalPad),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    PageDots(page = page, count = 4)
+                    Spacer(Modifier.height(pageGap))
+                    when (page) {
+                        0 -> WelcomePage(compact = compact, onNext = { page = 1 })
+                        1 -> FeaturePage(
+                            compact = compact,
+                            eyebrow = "SHORTCUTS",
+                            title = "Log expenses\nfrom anywhere.",
+                            body = "Android app shortcuts open the complete expense form so amount, date, name, category, and payment method are all captured.",
+                            icon = { ShortcutMock(compact) },
+                            button = "Continue",
+                            onNext = { page = 2 }
+                        )
+                        2 -> FeaturePage(
+                            compact = compact,
+                            eyebrow = "WIDGETS",
+                            title = "Spending trends\nat a glance.",
+                            body = "Track weekly, monthly, and yearly totals with clean monochrome cards that respect light and dark mode.",
+                            icon = { WidgetMock(compact) },
+                            button = "Continue",
+                            onNext = { page = 3 }
+                        )
+                        else -> LoginPanel(
+                            compact = compact,
+                            state = state,
+                            onGoogle = ::launchGooglePicker,
+                            onNotion = {
+                                viewModel.buildNotionAuthUri()?.let { uri ->
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                }
+                            },
+                            onContinue = onContinue
+                        )
+                    }
+                    if (state.isWorking) {
+                        Spacer(Modifier.height(12.dp))
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
@@ -185,8 +192,8 @@ private fun PageDots(page: Int, count: Int) {
 }
 
 @Composable
-private fun WelcomePage(onNext: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
+private fun WelcomePage(compact: Boolean, onNext: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 24.dp)) {
         LiquidCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 PreviewExpense("Coffee", "₹180.00")
@@ -194,7 +201,7 @@ private fun WelcomePage(onNext: () -> Unit) {
                 PreviewExpense("Petrol", "₹900.00")
             }
         }
-        Icon(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(130.dp), tint = Color.Unspecified)
+        Icon(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(if (compact) 86.dp else 130.dp), tint = Color.Unspecified)
         Text("Welcome to\nSyncSpend", textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 42.sp))
         Text("Your simple, delightful way to track expenses in rupees.", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         PrimaryAuthButton("Get Started", onNext)
@@ -202,8 +209,8 @@ private fun WelcomePage(onNext: () -> Unit) {
 }
 
 @Composable
-private fun FeaturePage(eyebrow: String, title: String, body: String, icon: @Composable () -> Unit, button: String, onNext: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(26.dp)) {
+private fun FeaturePage(compact: Boolean, eyebrow: String, title: String, body: String, icon: @Composable () -> Unit, button: String, onNext: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 14.dp else 26.dp)) {
         Text(eyebrow, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Black)
         icon()
         Text(title, textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 40.sp))
@@ -213,12 +220,12 @@ private fun FeaturePage(eyebrow: String, title: String, body: String, icon: @Com
 }
 
 @Composable
-private fun LoginPanel(state: AuthUiState, onGoogle: () -> Unit, onNotion: () -> Unit, onContinue: () -> Unit) {
-    Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(18.dp), modifier = Modifier.fillMaxWidth()) {
+private fun LoginPanel(compact: Boolean, state: AuthUiState, onGoogle: () -> Unit, onNotion: () -> Unit, onContinue: () -> Unit) {
+    Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 18.dp), modifier = Modifier.fillMaxWidth()) {
         Text("Expense.\nTracking.\nSimplified.", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 42.sp))
         Text("Connect Google Sheets, Notion, or both. SyncSpend keeps your session active until you choose logout.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         LiquidCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(Modifier.padding(if (compact) 14.dp else 18.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 9.dp else 14.dp)) {
                 AuthProviderRow("Google Sheets", if (state.googleConnected) state.googleEmail else "Private spreadsheet sync", "G", Color(0xFF4285F4))
                 Button(onClick = onGoogle, enabled = !state.isWorking, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(22.dp)) {
                     Text(if (state.googleConnected) "Choose another Google account" else "Continue with Google", fontWeight = FontWeight.Black)
@@ -254,7 +261,7 @@ private fun LiquidCard(modifier: Modifier = Modifier, content: @Composable () ->
 private fun PrimaryAuthButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(58.dp),
+        modifier = Modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(28.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background)
     ) { Text(text, fontWeight = FontWeight.Black, fontSize = 18.sp) }
@@ -275,9 +282,9 @@ private fun PreviewExpense(name: String, amount: String) {
 }
 
 @Composable
-private fun ShortcutMock() {
+private fun ShortcutMock(compact: Boolean) {
     LiquidCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(if (compact) 16.dp else 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("New Expense", fontWeight = FontWeight.Bold)
             Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.07f), shape = RoundedCornerShape(22.dp)) {
                 Text("₹16.99", Modifier.padding(18.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
@@ -291,9 +298,9 @@ private fun ShortcutMock() {
 }
 
 @Composable
-private fun WidgetMock() {
+private fun WidgetMock(compact: Boolean) {
     LiquidCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(if (compact) 16.dp else 22.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
             listOf("This Week" to "₹120.38", "This Month" to "₹349.18", "This Year" to "₹1,865.18").forEach { (label, amount) ->
                 Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f), shape = RoundedCornerShape(22.dp)) {
                     Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
