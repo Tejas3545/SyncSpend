@@ -12,11 +12,14 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.`internal`.Util
 import java.lang.NullPointerException
+import java.lang.reflect.Constructor
 import kotlin.Boolean
+import kotlin.Int
 import kotlin.String
 import kotlin.Suppress
 import kotlin.collections.List
 import kotlin.collections.emptySet
+import kotlin.jvm.Volatile
 import kotlin.text.buildString
 
 public class NotionQueryResponseJsonAdapter(
@@ -31,19 +34,27 @@ public class NotionQueryResponseJsonAdapter(
   private val booleanAdapter: JsonAdapter<Boolean> = moshi.adapter(Boolean::class.java, emptySet(),
       "hasMore")
 
+  @Volatile
+  private var constructorRef: Constructor<NotionQueryResponse>? = null
+
   override fun toString(): String = buildString(41) {
       append("GeneratedJsonAdapter(").append("NotionQueryResponse").append(')') }
 
   override fun fromJson(reader: JsonReader): NotionQueryResponse {
     var results: List<NotionPage>? = null
-    var hasMore: Boolean? = null
+    var hasMore: Boolean? = false
+    var mask0 = -1
     reader.beginObject()
     while (reader.hasNext()) {
       when (reader.selectName(options)) {
         0 -> results = listOfNotionPageAdapter.fromJson(reader) ?:
             throw Util.unexpectedNull("results", "results", reader)
-        1 -> hasMore = booleanAdapter.fromJson(reader) ?: throw Util.unexpectedNull("hasMore",
-            "has_more", reader)
+        1 -> {
+          hasMore = booleanAdapter.fromJson(reader) ?: throw Util.unexpectedNull("hasMore",
+              "has_more", reader)
+          // $mask = $mask and (1 shl 1).inv()
+          mask0 = mask0 and 0xfffffffd.toInt()
+        }
         -1 -> {
           // Unknown name, skip it.
           reader.skipName()
@@ -52,10 +63,26 @@ public class NotionQueryResponseJsonAdapter(
       }
     }
     reader.endObject()
-    return NotionQueryResponse(
-        results = results ?: throw Util.missingProperty("results", "results", reader),
-        hasMore = hasMore ?: throw Util.missingProperty("hasMore", "has_more", reader)
-    )
+    if (mask0 == 0xfffffffd.toInt()) {
+      // All parameters with defaults are set, invoke the constructor directly
+      return  NotionQueryResponse(
+          results = results ?: throw Util.missingProperty("results", "results", reader),
+          hasMore = hasMore as Boolean
+      )
+    } else {
+      // Reflectively invoke the synthetic defaults constructor
+      @Suppress("UNCHECKED_CAST")
+      val localConstructor: Constructor<NotionQueryResponse> = this.constructorRef ?:
+          NotionQueryResponse::class.java.getDeclaredConstructor(List::class.java,
+          Boolean::class.javaPrimitiveType, Int::class.javaPrimitiveType,
+          Util.DEFAULT_CONSTRUCTOR_MARKER).also { this.constructorRef = it }
+      return localConstructor.newInstance(
+          results ?: throw Util.missingProperty("results", "results", reader),
+          hasMore,
+          mask0,
+          /* DefaultConstructorMarker */ null
+      )
+    }
   }
 
   override fun toJson(writer: JsonWriter, value_: NotionQueryResponse?) {

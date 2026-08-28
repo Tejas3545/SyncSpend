@@ -2,7 +2,6 @@ package com.spendsync.app.worker;
 
 import android.content.Context;
 import androidx.work.WorkerParameters;
-import com.spendsync.app.domain.repository.ExpenseRepository;
 import com.spendsync.app.domain.repository.NotionRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Provider;
@@ -28,34 +27,28 @@ import javax.annotation.processing.Generated;
     "nullness:initialization.field.uninitialized"
 })
 public final class NotionSyncWorker_Factory {
-  private final Provider<ExpenseRepository> expenseRepositoryProvider;
-
   private final Provider<NotionRepository> notionRepositoryProvider;
 
-  public NotionSyncWorker_Factory(Provider<ExpenseRepository> expenseRepositoryProvider,
-      Provider<NotionRepository> notionRepositoryProvider) {
-    this.expenseRepositoryProvider = expenseRepositoryProvider;
+  public NotionSyncWorker_Factory(Provider<NotionRepository> notionRepositoryProvider) {
     this.notionRepositoryProvider = notionRepositoryProvider;
   }
 
   public NotionSyncWorker get(Context context, WorkerParameters params) {
-    return newInstance(context, params, expenseRepositoryProvider.get(), notionRepositoryProvider.get());
+    return newInstance(context, params, notionRepositoryProvider.get());
   }
 
   public static NotionSyncWorker_Factory create(
-      javax.inject.Provider<ExpenseRepository> expenseRepositoryProvider,
       javax.inject.Provider<NotionRepository> notionRepositoryProvider) {
-    return new NotionSyncWorker_Factory(Providers.asDaggerProvider(expenseRepositoryProvider), Providers.asDaggerProvider(notionRepositoryProvider));
+    return new NotionSyncWorker_Factory(Providers.asDaggerProvider(notionRepositoryProvider));
   }
 
   public static NotionSyncWorker_Factory create(
-      Provider<ExpenseRepository> expenseRepositoryProvider,
       Provider<NotionRepository> notionRepositoryProvider) {
-    return new NotionSyncWorker_Factory(expenseRepositoryProvider, notionRepositoryProvider);
+    return new NotionSyncWorker_Factory(notionRepositoryProvider);
   }
 
   public static NotionSyncWorker newInstance(Context context, WorkerParameters params,
-      ExpenseRepository expenseRepository, NotionRepository notionRepository) {
-    return new NotionSyncWorker(context, params, expenseRepository, notionRepository);
+      NotionRepository notionRepository) {
+    return new NotionSyncWorker(context, params, notionRepository);
   }
 }

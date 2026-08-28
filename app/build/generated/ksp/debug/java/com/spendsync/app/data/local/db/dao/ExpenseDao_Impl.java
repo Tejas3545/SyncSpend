@@ -41,7 +41,11 @@ public final class ExpenseDao_Impl implements ExpenseDao {
 
   private final SharedSQLiteStatement __preparedStmtOfDeleteById;
 
-  private final SharedSQLiteStatement __preparedStmtOfMarkAsSynced;
+  private final SharedSQLiteStatement __preparedStmtOfMarkNotionSynced;
+
+  private final SharedSQLiteStatement __preparedStmtOfMarkGoogleSynced;
+
+  private final SharedSQLiteStatement __preparedStmtOfRecordSyncError;
 
   public ExpenseDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
@@ -49,7 +53,7 @@ public final class ExpenseDao_Impl implements ExpenseDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `expenses` (`id`,`name`,`amount`,`categoryId`,`paymentMethodId`,`date`,`notionPageId`,`isSynced`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `expenses` (`id`,`name`,`amount`,`categoryId`,`paymentMethodId`,`date`,`notionPageId`,`isSynced`,`notionSynced`,`googleSynced`,`lastSyncError`,`createdAt`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -72,14 +76,23 @@ public final class ExpenseDao_Impl implements ExpenseDao {
         }
         final int _tmp = entity.isSynced() ? 1 : 0;
         statement.bindLong(8, _tmp);
-        statement.bindLong(9, entity.getCreatedAt());
+        final int _tmp_1 = entity.getNotionSynced() ? 1 : 0;
+        statement.bindLong(9, _tmp_1);
+        final int _tmp_2 = entity.getGoogleSynced() ? 1 : 0;
+        statement.bindLong(10, _tmp_2);
+        if (entity.getLastSyncError() == null) {
+          statement.bindNull(11);
+        } else {
+          statement.bindString(11, entity.getLastSyncError());
+        }
+        statement.bindLong(12, entity.getCreatedAt());
       }
     };
     this.__updateAdapterOfExpenseEntity = new EntityDeletionOrUpdateAdapter<ExpenseEntity>(__db) {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `expenses` SET `id` = ?,`name` = ?,`amount` = ?,`categoryId` = ?,`paymentMethodId` = ?,`date` = ?,`notionPageId` = ?,`isSynced` = ?,`createdAt` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `expenses` SET `id` = ?,`name` = ?,`amount` = ?,`categoryId` = ?,`paymentMethodId` = ?,`date` = ?,`notionPageId` = ?,`isSynced` = ?,`notionSynced` = ?,`googleSynced` = ?,`lastSyncError` = ?,`createdAt` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -102,8 +115,17 @@ public final class ExpenseDao_Impl implements ExpenseDao {
         }
         final int _tmp = entity.isSynced() ? 1 : 0;
         statement.bindLong(8, _tmp);
-        statement.bindLong(9, entity.getCreatedAt());
-        statement.bindString(10, entity.getId());
+        final int _tmp_1 = entity.getNotionSynced() ? 1 : 0;
+        statement.bindLong(9, _tmp_1);
+        final int _tmp_2 = entity.getGoogleSynced() ? 1 : 0;
+        statement.bindLong(10, _tmp_2);
+        if (entity.getLastSyncError() == null) {
+          statement.bindNull(11);
+        } else {
+          statement.bindString(11, entity.getLastSyncError());
+        }
+        statement.bindLong(12, entity.getCreatedAt());
+        statement.bindString(13, entity.getId());
       }
     };
     this.__preparedStmtOfDeleteById = new SharedSQLiteStatement(__db) {
@@ -114,11 +136,27 @@ public final class ExpenseDao_Impl implements ExpenseDao {
         return _query;
       }
     };
-    this.__preparedStmtOfMarkAsSynced = new SharedSQLiteStatement(__db) {
+    this.__preparedStmtOfMarkNotionSynced = new SharedSQLiteStatement(__db) {
       @Override
       @NonNull
       public String createQuery() {
-        final String _query = "UPDATE expenses SET notionPageId = ?, isSynced = CASE WHEN ? = 'error' THEN 0 ELSE 1 END WHERE id = ?";
+        final String _query = "UPDATE expenses SET notionPageId = ?, notionSynced = 1, isSynced = 1, lastSyncError = NULL WHERE id = ?";
+        return _query;
+      }
+    };
+    this.__preparedStmtOfMarkGoogleSynced = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE expenses SET googleSynced = 1, isSynced = 1, lastSyncError = NULL WHERE id = ?";
+        return _query;
+      }
+    };
+    this.__preparedStmtOfRecordSyncError = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE expenses SET lastSyncError = ? WHERE id = ?";
         return _query;
       }
     };
@@ -186,18 +224,16 @@ public final class ExpenseDao_Impl implements ExpenseDao {
   }
 
   @Override
-  public Object markAsSynced(final String id, final String notionPageId,
+  public Object markNotionSynced(final String id, final String pageId,
       final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
       public Unit call() throws Exception {
-        final SupportSQLiteStatement _stmt = __preparedStmtOfMarkAsSynced.acquire();
+        final SupportSQLiteStatement _stmt = __preparedStmtOfMarkNotionSynced.acquire();
         int _argIndex = 1;
-        _stmt.bindString(_argIndex, notionPageId);
+        _stmt.bindString(_argIndex, pageId);
         _argIndex = 2;
-        _stmt.bindString(_argIndex, notionPageId);
-        _argIndex = 3;
         _stmt.bindString(_argIndex, id);
         try {
           __db.beginTransaction();
@@ -209,7 +245,60 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             __db.endTransaction();
           }
         } finally {
-          __preparedStmtOfMarkAsSynced.release(_stmt);
+          __preparedStmtOfMarkNotionSynced.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object markGoogleSynced(final String id, final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfMarkGoogleSynced.acquire();
+        int _argIndex = 1;
+        _stmt.bindString(_argIndex, id);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfMarkGoogleSynced.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object recordSyncError(final String id, final String message,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfRecordSyncError.acquire();
+        int _argIndex = 1;
+        _stmt.bindString(_argIndex, message);
+        _argIndex = 2;
+        _stmt.bindString(_argIndex, id);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfRecordSyncError.release(_stmt);
         }
       }
     }, $completion);
@@ -233,6 +322,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
           final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
           final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
           final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<ExpenseEntity> _result = new ArrayList<ExpenseEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -263,9 +355,23 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             final int _tmp;
             _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
             _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpCreatedAt);
+            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;
@@ -303,6 +409,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
           final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
           final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
           final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final ExpenseEntity _result;
           if (_cursor.moveToFirst()) {
@@ -332,9 +441,23 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             final int _tmp;
             _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
             _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _result = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpCreatedAt);
+            _result = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
           } else {
             _result = null;
           }
@@ -348,8 +471,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
   }
 
   @Override
-  public Object getUnsyncedExpenses(final Continuation<? super List<ExpenseEntity>> $completion) {
-    final String _sql = "SELECT * FROM expenses WHERE isSynced = 0";
+  public Object getPendingNotionExpenses(
+      final Continuation<? super List<ExpenseEntity>> $completion) {
+    final String _sql = "SELECT * FROM expenses WHERE notionSynced = 0 ORDER BY createdAt ASC";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
     return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<List<ExpenseEntity>>() {
@@ -366,6 +490,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
           final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
           final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
           final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<ExpenseEntity> _result = new ArrayList<ExpenseEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -396,9 +523,104 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             final int _tmp;
             _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
             _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpCreatedAt);
+            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getPendingGoogleExpenses(
+      final Continuation<? super List<ExpenseEntity>> $completion) {
+    final String _sql = "SELECT * FROM expenses WHERE googleSynced = 0 ORDER BY createdAt ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<List<ExpenseEntity>>() {
+      @Override
+      @NonNull
+      public List<ExpenseEntity> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
+          final int _cursorIndexOfAmount = CursorUtil.getColumnIndexOrThrow(_cursor, "amount");
+          final int _cursorIndexOfCategoryId = CursorUtil.getColumnIndexOrThrow(_cursor, "categoryId");
+          final int _cursorIndexOfPaymentMethodId = CursorUtil.getColumnIndexOrThrow(_cursor, "paymentMethodId");
+          final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
+          final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
+          final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
+          final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
+          final List<ExpenseEntity> _result = new ArrayList<ExpenseEntity>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final ExpenseEntity _item;
+            final String _tmpId;
+            _tmpId = _cursor.getString(_cursorIndexOfId);
+            final String _tmpName;
+            _tmpName = _cursor.getString(_cursorIndexOfName);
+            final double _tmpAmount;
+            _tmpAmount = _cursor.getDouble(_cursorIndexOfAmount);
+            final String _tmpCategoryId;
+            _tmpCategoryId = _cursor.getString(_cursorIndexOfCategoryId);
+            final String _tmpPaymentMethodId;
+            if (_cursor.isNull(_cursorIndexOfPaymentMethodId)) {
+              _tmpPaymentMethodId = null;
+            } else {
+              _tmpPaymentMethodId = _cursor.getString(_cursorIndexOfPaymentMethodId);
+            }
+            final long _tmpDate;
+            _tmpDate = _cursor.getLong(_cursorIndexOfDate);
+            final String _tmpNotionPageId;
+            if (_cursor.isNull(_cursorIndexOfNotionPageId)) {
+              _tmpNotionPageId = null;
+            } else {
+              _tmpNotionPageId = _cursor.getString(_cursorIndexOfNotionPageId);
+            }
+            final boolean _tmpIsSynced;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
+            _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
+            final long _tmpCreatedAt;
+            _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
+            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;
@@ -430,6 +652,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
           final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
           final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
           final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<ExpenseEntity> _result = new ArrayList<ExpenseEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -460,9 +685,23 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             final int _tmp;
             _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
             _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpCreatedAt);
+            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;
@@ -501,6 +740,9 @@ public final class ExpenseDao_Impl implements ExpenseDao {
           final int _cursorIndexOfDate = CursorUtil.getColumnIndexOrThrow(_cursor, "date");
           final int _cursorIndexOfNotionPageId = CursorUtil.getColumnIndexOrThrow(_cursor, "notionPageId");
           final int _cursorIndexOfIsSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "isSynced");
+          final int _cursorIndexOfNotionSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "notionSynced");
+          final int _cursorIndexOfGoogleSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "googleSynced");
+          final int _cursorIndexOfLastSyncError = CursorUtil.getColumnIndexOrThrow(_cursor, "lastSyncError");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<ExpenseEntity> _result = new ArrayList<ExpenseEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -531,9 +773,23 @@ public final class ExpenseDao_Impl implements ExpenseDao {
             final int _tmp;
             _tmp = _cursor.getInt(_cursorIndexOfIsSynced);
             _tmpIsSynced = _tmp != 0;
+            final boolean _tmpNotionSynced;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfNotionSynced);
+            _tmpNotionSynced = _tmp_1 != 0;
+            final boolean _tmpGoogleSynced;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfGoogleSynced);
+            _tmpGoogleSynced = _tmp_2 != 0;
+            final String _tmpLastSyncError;
+            if (_cursor.isNull(_cursorIndexOfLastSyncError)) {
+              _tmpLastSyncError = null;
+            } else {
+              _tmpLastSyncError = _cursor.getString(_cursorIndexOfLastSyncError);
+            }
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpCreatedAt);
+            _item = new ExpenseEntity(_tmpId,_tmpName,_tmpAmount,_tmpCategoryId,_tmpPaymentMethodId,_tmpDate,_tmpNotionPageId,_tmpIsSynced,_tmpNotionSynced,_tmpGoogleSynced,_tmpLastSyncError,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;

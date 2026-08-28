@@ -2,7 +2,6 @@ package com.spendsync.app;
 
 import com.spendsync.app.data.local.datastore.AuthDataStore;
 import com.spendsync.app.data.local.datastore.SettingsDataStore;
-import com.spendsync.app.domain.repository.AuthRepository;
 import dagger.MembersInjector;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.InjectedFieldSignature;
@@ -31,35 +30,28 @@ public final class MainActivity_MembersInjector implements MembersInjector<MainA
 
   private final Provider<AuthDataStore> authDataStoreProvider;
 
-  private final Provider<AuthRepository> authRepositoryProvider;
-
   public MainActivity_MembersInjector(Provider<SettingsDataStore> settingsDataStoreProvider,
-      Provider<AuthDataStore> authDataStoreProvider,
-      Provider<AuthRepository> authRepositoryProvider) {
+      Provider<AuthDataStore> authDataStoreProvider) {
     this.settingsDataStoreProvider = settingsDataStoreProvider;
     this.authDataStoreProvider = authDataStoreProvider;
-    this.authRepositoryProvider = authRepositoryProvider;
   }
 
   public static MembersInjector<MainActivity> create(
       Provider<SettingsDataStore> settingsDataStoreProvider,
-      Provider<AuthDataStore> authDataStoreProvider,
-      Provider<AuthRepository> authRepositoryProvider) {
-    return new MainActivity_MembersInjector(settingsDataStoreProvider, authDataStoreProvider, authRepositoryProvider);
+      Provider<AuthDataStore> authDataStoreProvider) {
+    return new MainActivity_MembersInjector(settingsDataStoreProvider, authDataStoreProvider);
   }
 
   public static MembersInjector<MainActivity> create(
       javax.inject.Provider<SettingsDataStore> settingsDataStoreProvider,
-      javax.inject.Provider<AuthDataStore> authDataStoreProvider,
-      javax.inject.Provider<AuthRepository> authRepositoryProvider) {
-    return new MainActivity_MembersInjector(Providers.asDaggerProvider(settingsDataStoreProvider), Providers.asDaggerProvider(authDataStoreProvider), Providers.asDaggerProvider(authRepositoryProvider));
+      javax.inject.Provider<AuthDataStore> authDataStoreProvider) {
+    return new MainActivity_MembersInjector(Providers.asDaggerProvider(settingsDataStoreProvider), Providers.asDaggerProvider(authDataStoreProvider));
   }
 
   @Override
   public void injectMembers(MainActivity instance) {
     injectSettingsDataStore(instance, settingsDataStoreProvider.get());
     injectAuthDataStore(instance, authDataStoreProvider.get());
-    injectAuthRepository(instance, authRepositoryProvider.get());
   }
 
   @InjectedFieldSignature("com.spendsync.app.MainActivity.settingsDataStore")
@@ -71,10 +63,5 @@ public final class MainActivity_MembersInjector implements MembersInjector<MainA
   @InjectedFieldSignature("com.spendsync.app.MainActivity.authDataStore")
   public static void injectAuthDataStore(MainActivity instance, AuthDataStore authDataStore) {
     instance.authDataStore = authDataStore;
-  }
-
-  @InjectedFieldSignature("com.spendsync.app.MainActivity.authRepository")
-  public static void injectAuthRepository(MainActivity instance, AuthRepository authRepository) {
-    instance.authRepository = authRepository;
   }
 }

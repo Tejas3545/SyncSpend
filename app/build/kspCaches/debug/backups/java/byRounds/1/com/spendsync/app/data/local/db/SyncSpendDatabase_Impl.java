@@ -41,14 +41,14 @@ public final class SyncSpendDatabase_Impl extends SyncSpendDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(1) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `expenses` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `amount` REAL NOT NULL, `categoryId` TEXT NOT NULL, `paymentMethodId` TEXT, `date` INTEGER NOT NULL, `notionPageId` TEXT, `isSynced` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `expenses` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `amount` REAL NOT NULL, `categoryId` TEXT NOT NULL, `paymentMethodId` TEXT, `date` INTEGER NOT NULL, `notionPageId` TEXT, `isSynced` INTEGER NOT NULL, `notionSynced` INTEGER NOT NULL, `googleSynced` INTEGER NOT NULL, `lastSyncError` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `categories` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `emoji` TEXT NOT NULL, `isDefault` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `payment_methods` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `isDefault` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '78d8e099a88bf5aab970236e4510c8c1')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3fec48df3d7eafa170c044934b39fd08')");
       }
 
       @Override
@@ -99,7 +99,7 @@ public final class SyncSpendDatabase_Impl extends SyncSpendDatabase {
       @NonNull
       public RoomOpenHelper.ValidationResult onValidateSchema(
           @NonNull final SupportSQLiteDatabase db) {
-        final HashMap<String, TableInfo.Column> _columnsExpenses = new HashMap<String, TableInfo.Column>(9);
+        final HashMap<String, TableInfo.Column> _columnsExpenses = new HashMap<String, TableInfo.Column>(12);
         _columnsExpenses.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsExpenses.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsExpenses.put("amount", new TableInfo.Column("amount", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -108,6 +108,9 @@ public final class SyncSpendDatabase_Impl extends SyncSpendDatabase {
         _columnsExpenses.put("date", new TableInfo.Column("date", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsExpenses.put("notionPageId", new TableInfo.Column("notionPageId", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsExpenses.put("isSynced", new TableInfo.Column("isSynced", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsExpenses.put("notionSynced", new TableInfo.Column("notionSynced", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsExpenses.put("googleSynced", new TableInfo.Column("googleSynced", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsExpenses.put("lastSyncError", new TableInfo.Column("lastSyncError", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsExpenses.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysExpenses = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesExpenses = new HashSet<TableInfo.Index>(0);
@@ -147,7 +150,7 @@ public final class SyncSpendDatabase_Impl extends SyncSpendDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "78d8e099a88bf5aab970236e4510c8c1", "40a20c938061a9c7cdcedb3c1a3d9710");
+    }, "3fec48df3d7eafa170c044934b39fd08", "22cf0427dbd9b3888a96ad226b983500");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

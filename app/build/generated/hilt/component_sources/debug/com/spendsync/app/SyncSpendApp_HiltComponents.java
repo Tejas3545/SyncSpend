@@ -7,9 +7,9 @@ import com.spendsync.app.di.RepositoryModule;
 import com.spendsync.app.di.WorkerModule;
 import com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.addexpense.QuickAddActivity_GeneratedInjector;
+import com.spendsync.app.presentation.screens.auth.AuthViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.history.HistoryViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.home.HomeViewModel_HiltModules;
-import com.spendsync.app.presentation.screens.login.LoginViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.settings.SettingsViewModel_HiltModules;
 import com.spendsync.app.widget.SyncSpendWidget;
 import com.spendsync.app.worker.GoogleSyncWorker_HiltModule;
@@ -173,11 +173,11 @@ public final class SyncSpendApp_HiltComponents {
   @Subcomponent(
       modules = {
           AddExpenseViewModel_HiltModules.KeyModule.class,
+          AuthViewModel_HiltModules.KeyModule.class,
           HiltWrapper_ActivityRetainedComponentManager_LifecycleModule.class,
           HiltWrapper_SavedStateHandleModule.class,
           HistoryViewModel_HiltModules.KeyModule.class,
           HomeViewModel_HiltModules.KeyModule.class,
-          LoginViewModel_HiltModules.KeyModule.class,
           SettingsViewModel_HiltModules.KeyModule.class,
           ActivityCBuilderModule.class,
           ViewModelCBuilderModule.class
@@ -218,10 +218,10 @@ public final class SyncSpendApp_HiltComponents {
   @Subcomponent(
       modules = {
           AddExpenseViewModel_HiltModules.BindsModule.class,
+          AuthViewModel_HiltModules.BindsModule.class,
           HiltWrapper_HiltViewModelFactory_ViewModelModule.class,
           HistoryViewModel_HiltModules.BindsModule.class,
           HomeViewModel_HiltModules.BindsModule.class,
-          LoginViewModel_HiltModules.BindsModule.class,
           SettingsViewModel_HiltModules.BindsModule.class
       }
   )

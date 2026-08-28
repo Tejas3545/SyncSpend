@@ -4,47 +4,24 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ReceiptLong
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -70,6 +47,7 @@ fun AuthScreen(
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     var page by remember { mutableIntStateOf(0) }
+    
     val googleOptions = remember {
         val scopes = GoogleSheetsRepositoryImpl.GOOGLE_SCOPES.map(::Scope)
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -102,7 +80,10 @@ fun AuthScreen(
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbar) }, containerColor = MaterialTheme.colorScheme.background) { padding ->
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,64 +92,96 @@ fun AuthScreen(
                     Brush.verticalGradient(
                         listOf(
                             MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
                             MaterialTheme.colorScheme.background
                         )
                     )
                 )
-                .padding(horizontal = 24.dp),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 24.dp)
         ) {
-            BoxWithConstraints(Modifier.fillMaxSize()) {
-                val compact = maxHeight < 760.dp
-                val pageGap = if (compact) 14.dp else 28.dp
-                val verticalPad = if (compact) 14.dp else 28.dp
+            // Ambient Liquid Glass Background Orbs
+            Box(
+                modifier = Modifier
+                    .size(320.dp)
+                    .offset(x = (-100).dp, y = (-80).dp)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
 
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Top Indicator & Header
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = verticalPad),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier.padding(top = 12.dp)
                 ) {
                     PageDots(page = page, count = 4)
-                    Spacer(Modifier.height(pageGap))
-                    when (page) {
-                        0 -> WelcomePage(compact = compact, onNext = { page = 1 })
-                        1 -> FeaturePage(
-                            compact = compact,
-                            eyebrow = "SHORTCUTS",
-                            title = "Log expenses\nfrom anywhere.",
-                            body = "Android app shortcuts open the complete expense form so amount, date, name, category, and payment method are all captured.",
-                            icon = { ShortcutMock(compact) },
-                            button = "Continue",
-                            onNext = { page = 2 }
-                        )
-                        2 -> FeaturePage(
-                            compact = compact,
-                            eyebrow = "WIDGETS",
-                            title = "Spending trends\nat a glance.",
-                            body = "Track weekly, monthly, and yearly totals with clean monochrome cards that respect light and dark mode.",
-                            icon = { WidgetMock(compact) },
-                            button = "Continue",
-                            onNext = { page = 3 }
-                        )
-                        else -> LoginPanel(
-                            compact = compact,
-                            state = state,
-                            onGoogle = ::launchGooglePicker,
-                            onNotion = {
-                                viewModel.buildNotionAuthUri()?.let { uri ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                }
-                            },
-                            onContinue = onContinue
-                        )
+                }
+
+                // Middle Content Area - Fit to Frame
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedContent(
+                        targetState = page,
+                        transitionSpec = {
+                            fadeIn() + slideInHorizontally { width -> if (targetState > initialState) width else -width } togetherWith
+                                    fadeOut() + slideOutHorizontally { width -> if (targetState > initialState) -width else width }
+                        },
+                        label = "AuthPages"
+                    ) { targetPage ->
+                        when (targetPage) {
+                            0 -> WelcomePage(onNext = { page = 1 })
+                            1 -> FeaturePage(
+                                eyebrow = "SHORTCUTS",
+                                title = "Log expenses\nfrom anywhere.",
+                                body = "Fast shortcut tile and widgets let you log expenses in seconds. Auto-suggestions fill in details from previous entries.",
+                                icon = { ShortcutMock() },
+                                buttonText = "Continue",
+                                onNext = { page = 2 }
+                            )
+                            2 -> FeaturePage(
+                                eyebrow = "WIDGETS",
+                                title = "Spending trends\nat a glance.",
+                                body = "Keep track of weekly, monthly, and yearly totals with clean monochrome cards right on your home screen.",
+                                icon = { WidgetMock() },
+                                buttonText = "Continue",
+                                onNext = { page = 3 }
+                            )
+                            else -> LoginPanel(
+                                state = state,
+                                onGoogle = ::launchGooglePicker,
+                                onNotion = {
+                                    viewModel.buildNotionAuthUri()?.let { uri ->
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                    }
+                                },
+                                onContinue = onContinue
+                            )
+                        }
                     }
-                    if (state.isWorking) {
-                        Spacer(Modifier.height(12.dp))
-                        CircularProgressIndicator()
-                    }
+                }
+
+                // Footer Loading Indicator
+                if (state.isWorking) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
@@ -177,14 +190,18 @@ fun AuthScreen(
 
 @Composable
 private fun PageDots(page: Int, count: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         repeat(count) { index ->
             Box(
                 Modifier
-                    .size(width = if (index == page) 36.dp else 9.dp, height = 9.dp)
+                    .size(width = if (index == page) 32.dp else 8.dp, height = 8.dp)
+                    .clip(CircleShape)
                     .background(
-                        if (index == page) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                        CircleShape
+                        if (index == page) MaterialTheme.colorScheme.onBackground
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                     )
             )
         }
@@ -192,147 +209,348 @@ private fun PageDots(page: Int, count: Int) {
 }
 
 @Composable
-private fun WelcomePage(compact: Boolean, onNext: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 24.dp)) {
-        LiquidCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                PreviewExpense("Coffee", "₹180.00")
-                PreviewExpense("Groceries", "₹1,420.00")
-                PreviewExpense("Petrol", "₹900.00")
+private fun WelcomePage(onNext: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        LiquidGlassCard(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                PreviewExpenseRow("Spotify", "Entertainment", "₹20.98")
+                PreviewExpenseRow("Groceries", "Food & Drinks", "₹56.80")
+                PreviewExpenseRow("Uber", "Transportation", "₹26.40")
             }
         }
-        Icon(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(if (compact) 86.dp else 130.dp), tint = Color.Unspecified)
-        Text("Welcome to\nSyncSpend", textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 42.sp))
-        Text("Your simple, delightful way to track expenses in rupees.", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        PrimaryAuthButton("Get Started", onNext)
+
+        Icon(
+            painter = painterResource(R.drawable.ic_logo),
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = Color.Unspecified
+        )
+
+        Text(
+            "Expense.\nTracking.\nSimplified.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.displaySmall.copy(
+                fontWeight = FontWeight.Black,
+                lineHeight = 36.sp,
+                letterSpacing = (-1).sp
+            )
+        )
+
+        Text(
+            "Track expenses effortlessly. Auto-sync with Notion and Google Sheets with zero backend cost.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        PrimaryLiquidButton("Get Started", onNext)
     }
 }
 
 @Composable
-private fun FeaturePage(compact: Boolean, eyebrow: String, title: String, body: String, icon: @Composable () -> Unit, button: String, onNext: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 14.dp else 26.dp)) {
-        Text(eyebrow, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Black)
+private fun FeaturePage(
+    eyebrow: String,
+    title: String,
+    body: String,
+    icon: @Composable () -> Unit,
+    buttonText: String,
+    onNext: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            eyebrow,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Black,
+            style = MaterialTheme.typography.labelMedium,
+            letterSpacing = 2.sp
+        )
+
         icon()
-        Text(title, textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 40.sp))
-        Text(body, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
-        PrimaryAuthButton(button, onNext)
+
+        Text(
+            title,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.Black,
+                lineHeight = 34.sp
+            )
+        )
+
+        Text(
+            body,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        PrimaryLiquidButton(buttonText, onNext)
     }
 }
 
 @Composable
-private fun LoginPanel(compact: Boolean, state: AuthUiState, onGoogle: () -> Unit, onNotion: () -> Unit, onContinue: () -> Unit) {
-    Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 18.dp), modifier = Modifier.fillMaxWidth()) {
-        Text("Expense.\nTracking.\nSimplified.", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Black, lineHeight = 42.sp))
-        Text("Connect Google Sheets, Notion, or both. SyncSpend keeps your session active until you choose logout.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        LiquidCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(if (compact) 14.dp else 18.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 9.dp else 14.dp)) {
-                AuthProviderRow("Google Sheets", if (state.googleConnected) state.googleEmail else "Private spreadsheet sync", "G", Color(0xFF4285F4))
-                Button(onClick = onGoogle, enabled = !state.isWorking, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(22.dp)) {
-                    Text(if (state.googleConnected) "Choose another Google account" else "Continue with Google", fontWeight = FontWeight.Black)
-                }
-                AuthProviderRow("Notion", if (state.notionConnected) "Expenses database ready" else "Create your expenses database automatically", "N", MaterialTheme.colorScheme.onSurface)
-                OutlinedButton(onClick = onNotion, enabled = !state.isWorking, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(22.dp)) {
-                    Icon(painterResource(R.drawable.ic_notion), contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.Unspecified)
-                    Spacer(Modifier.size(8.dp))
-                    Text(if (state.notionConnected) "Notion Connected" else "Continue with Notion", fontWeight = FontWeight.Bold)
-                }
-                if (state.googleConnected || state.notionConnected) {
-                    PrimaryAuthButton("Start SyncSpend", onContinue)
-                }
+private fun LoginPanel(
+    state: AuthUiState,
+    onGoogle: () -> Unit,
+    onNotion: () -> Unit,
+    onContinue: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            "Connect Your Sync Destinations",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Black
+            )
+        )
+
+        Text(
+            "Expenses are saved directly to your phone. Connect Google Sheets, Notion, or use local offline mode.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        LiquidGlassCard(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AuthProviderItem(
+                    title = "Google Sheets",
+                    subtitle = if (state.googleConnected) state.googleEmail else "Private spreadsheet sync",
+                    connected = state.googleConnected,
+                    monogram = "G",
+                    color = Color(0xFF4285F4),
+                    onClick = onGoogle
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+
+                AuthProviderItem(
+                    title = "Notion",
+                    subtitle = if (state.notionConnected) "Database connected" else "Auto-creates Notion expenses database",
+                    connected = state.notionConnected,
+                    monogram = "N",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    onClick = onNotion
+                )
             }
         }
-        Text("You can use either destination. Your expense entries remain private on your account and device.", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
+
+        Spacer(Modifier.height(4.dp))
+
+        if (state.googleConnected || state.notionConnected) {
+            PrimaryLiquidButton("Start SyncSpend", onContinue)
+        } else {
+            PrimaryLiquidButton("Continue (Local & Offline)", onContinue)
+        }
+
+        Text(
+            "Zero cloud servers. Your financial data stays 100% private in your own accounts.",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
 @Composable
-private fun LiquidCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun AuthProviderItem(
+    title: String,
+    subtitle: String,
+    connected: Boolean,
+    monogram: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(monogram, color = color, fontWeight = FontWeight.Black, fontSize = 20.sp)
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        }
+        Surface(
+            color = if (connected) Color(0xFF34C759).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (connected) {
+                    Icon(Icons.Default.Check, null, tint = Color(0xFF34C759), modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                }
+                Text(
+                    if (connected) "Connected" else "Connect",
+                    color = if (connected) Color(0xFF248A3D) else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LiquidGlassCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(34.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)),
-        shadowElevation = 18.dp,
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
         content = content
     )
 }
 
 @Composable
-private fun PrimaryAuthButton(text: String, onClick: () -> Unit) {
+private fun PrimaryLiquidButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background)
-    ) { Text(text, fontWeight = FontWeight.Black, fontSize = 18.sp) }
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(26.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.onBackground,
+            contentColor = MaterialTheme.colorScheme.background
+        )
+    ) {
+        Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+    }
 }
 
 @Composable
-private fun PreviewExpense(name: String, amount: String) {
-    Surface(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f), shape = RoundedCornerShape(22.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .15f))) {
-        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(42.dp).background(MaterialTheme.colorScheme.onBackground.copy(alpha = .10f), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.ReceiptLong, null, modifier = Modifier.size(23.dp))
+private fun PreviewExpenseRow(name: String, category: String, amount: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier
+                    .size(36.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.ReceiptLong, null, modifier = Modifier.size(18.dp))
             }
-            Spacer(Modifier.size(14.dp))
-            Text(name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-            Text(amount, fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                Text(category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(amount, fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 @Composable
-private fun ShortcutMock(compact: Boolean) {
-    LiquidCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(if (compact) 16.dp else 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("New Expense", fontWeight = FontWeight.Bold)
-            Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.07f), shape = RoundedCornerShape(22.dp)) {
-                Text("₹16.99", Modifier.padding(18.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Black)
+private fun ShortcutMock() {
+    LiquidGlassCard(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text("What is the amount?", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+            Surface(
+                Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+            ) {
+                Text(
+                    "16.99",
+                    Modifier.padding(14.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(Modifier.weight(1f), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.10f), shape = RoundedCornerShape(18.dp)) { Text("Cancel", Modifier.padding(14.dp), textAlign = TextAlign.Center) }
-                Surface(Modifier.weight(1f), color = MaterialTheme.colorScheme.onBackground, shape = RoundedCornerShape(18.dp)) { Text("Done", Modifier.padding(14.dp), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.background, fontWeight = FontWeight.Bold) }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Surface(
+                    Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Cancel", Modifier.padding(10.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium)
+                }
+                Surface(
+                    Modifier.weight(1f),
+                    color = Color(0xFF007AFF),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Done", Modifier.padding(10.dp), textAlign = TextAlign.Center, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun WidgetMock(compact: Boolean) {
-    LiquidCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(if (compact) 16.dp else 22.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
-            listOf("This Week" to "₹120.38", "This Month" to "₹349.18", "This Year" to "₹1,865.18").forEach { (label, amount) ->
-                Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f), shape = RoundedCornerShape(22.dp)) {
-                    Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.BarChart, null)
-                        Spacer(Modifier.size(12.dp))
-                        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(amount, fontWeight = FontWeight.Black)
+private fun WidgetMock() {
+    LiquidGlassCard(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("This Week" to "$120.38", "This Month" to "$349.18", "This Year" to "$1,865.18").forEach { (label, amount) ->
+                Surface(
+                    Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.BarChart, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        Text(amount, fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Icon(Icons.Default.DateRange, null)
-                Spacer(Modifier.size(12.dp))
-                Icon(Icons.Default.KeyboardArrowRight, null)
-            }
         }
     }
 }
 
-@Composable
-private fun AuthProviderRow(title: String, subtitle: String, monogram: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(
-            modifier = Modifier.size(46.dp).background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) { Text(monogram, color = color, fontWeight = FontWeight.Black, fontSize = 22.sp) }
-        Column(Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-        }
-        if (subtitle.contains("ready") || subtitle.contains("@")) {
-            Icon(Icons.Default.Check, null, tint = Color(0xFF34C759), modifier = Modifier.size(18.dp))
-        }
-    }
-}

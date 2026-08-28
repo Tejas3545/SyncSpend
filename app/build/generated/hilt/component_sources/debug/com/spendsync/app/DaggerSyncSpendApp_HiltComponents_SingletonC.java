@@ -51,6 +51,10 @@ import com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel_Hil
 import com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
 import com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
 import com.spendsync.app.presentation.screens.addexpense.QuickAddActivity;
+import com.spendsync.app.presentation.screens.auth.AuthViewModel;
+import com.spendsync.app.presentation.screens.auth.AuthViewModel_HiltModules;
+import com.spendsync.app.presentation.screens.auth.AuthViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
+import com.spendsync.app.presentation.screens.auth.AuthViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
 import com.spendsync.app.presentation.screens.history.HistoryViewModel;
 import com.spendsync.app.presentation.screens.history.HistoryViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.history.HistoryViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
@@ -59,10 +63,6 @@ import com.spendsync.app.presentation.screens.home.HomeViewModel;
 import com.spendsync.app.presentation.screens.home.HomeViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.home.HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
 import com.spendsync.app.presentation.screens.home.HomeViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
-import com.spendsync.app.presentation.screens.login.LoginViewModel;
-import com.spendsync.app.presentation.screens.login.LoginViewModel_HiltModules;
-import com.spendsync.app.presentation.screens.login.LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
-import com.spendsync.app.presentation.screens.login.LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey;
 import com.spendsync.app.presentation.screens.settings.SettingsViewModel;
 import com.spendsync.app.presentation.screens.settings.SettingsViewModel_HiltModules;
 import com.spendsync.app.presentation.screens.settings.SettingsViewModel_HiltModules_BindsModule_Binds_LazyMapKey;
@@ -437,7 +437,7 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
 
     @Override
     public Map<Class<?>, Boolean> getViewModelKeys() {
-      return LazyClassKeyMap.<Boolean>of(ImmutableMap.<String, Boolean>of(AddExpenseViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, AddExpenseViewModel_HiltModules.KeyModule.provide(), HistoryViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HistoryViewModel_HiltModules.KeyModule.provide(), HomeViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HomeViewModel_HiltModules.KeyModule.provide(), LoginViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, LoginViewModel_HiltModules.KeyModule.provide(), SettingsViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, SettingsViewModel_HiltModules.KeyModule.provide()));
+      return LazyClassKeyMap.<Boolean>of(ImmutableMap.<String, Boolean>of(AddExpenseViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, AddExpenseViewModel_HiltModules.KeyModule.provide(), AuthViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, AuthViewModel_HiltModules.KeyModule.provide(), HistoryViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HistoryViewModel_HiltModules.KeyModule.provide(), HomeViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, HomeViewModel_HiltModules.KeyModule.provide(), SettingsViewModel_HiltModules_KeyModule_Provide_LazyMapKey.lazyClassKeyName, SettingsViewModel_HiltModules.KeyModule.provide()));
     }
 
     @Override
@@ -459,7 +459,6 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
     private MainActivity injectMainActivity2(MainActivity instance) {
       MainActivity_MembersInjector.injectSettingsDataStore(instance, singletonCImpl.settingsDataStoreProvider.get());
       MainActivity_MembersInjector.injectAuthDataStore(instance, singletonCImpl.authDataStoreProvider.get());
-      MainActivity_MembersInjector.injectAuthRepository(instance, singletonCImpl.authRepositoryImplProvider.get());
       return instance;
     }
   }
@@ -473,11 +472,11 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
 
     private Provider<AddExpenseViewModel> addExpenseViewModelProvider;
 
+    private Provider<AuthViewModel> authViewModelProvider;
+
     private Provider<HistoryViewModel> historyViewModelProvider;
 
     private Provider<HomeViewModel> homeViewModelProvider;
-
-    private Provider<LoginViewModel> loginViewModelProvider;
 
     private Provider<SettingsViewModel> settingsViewModelProvider;
 
@@ -515,15 +514,15 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
     private void initialize(final SavedStateHandle savedStateHandleParam,
         final ViewModelLifecycle viewModelLifecycleParam) {
       this.addExpenseViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 0);
-      this.historyViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
-      this.homeViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 2);
-      this.loginViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 3);
+      this.authViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 1);
+      this.historyViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 2);
+      this.homeViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 3);
       this.settingsViewModelProvider = new SwitchingProvider<>(singletonCImpl, activityRetainedCImpl, viewModelCImpl, 4);
     }
 
     @Override
     public Map<Class<?>, javax.inject.Provider<ViewModel>> getHiltViewModelMap() {
-      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(ImmutableMap.<String, javax.inject.Provider<ViewModel>>of(AddExpenseViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) addExpenseViewModelProvider), HistoryViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) historyViewModelProvider), HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) homeViewModelProvider), LoginViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) loginViewModelProvider), SettingsViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) settingsViewModelProvider)));
+      return LazyClassKeyMap.<javax.inject.Provider<ViewModel>>of(ImmutableMap.<String, javax.inject.Provider<ViewModel>>of(AddExpenseViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) addExpenseViewModelProvider), AuthViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) authViewModelProvider), HistoryViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) historyViewModelProvider), HomeViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) homeViewModelProvider), SettingsViewModel_HiltModules_BindsModule_Binds_LazyMapKey.lazyClassKeyName, ((Provider) settingsViewModelProvider)));
     }
 
     @Override
@@ -555,17 +554,17 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
           case 0: // com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel 
           return (T) new AddExpenseViewModel(viewModelCImpl.addExpenseUseCase(), singletonCImpl.bindCategoryRepositoryProvider.get(), viewModelCImpl.getSuggestionsUseCase(), singletonCImpl.paymentMethodDao(), singletonCImpl.provideWorkManagerProvider.get());
 
-          case 1: // com.spendsync.app.presentation.screens.history.HistoryViewModel 
+          case 1: // com.spendsync.app.presentation.screens.auth.AuthViewModel 
+          return (T) new AuthViewModel(singletonCImpl.authDataStoreProvider.get(), singletonCImpl.authRepositoryImplProvider.get(), singletonCImpl.bindNotionRepositoryProvider.get(), singletonCImpl.provideWorkManagerProvider.get());
+
+          case 2: // com.spendsync.app.presentation.screens.history.HistoryViewModel 
           return (T) new HistoryViewModel(viewModelCImpl.getExpensesUseCase(), viewModelCImpl.deleteExpenseUseCase());
 
-          case 2: // com.spendsync.app.presentation.screens.home.HomeViewModel 
+          case 3: // com.spendsync.app.presentation.screens.home.HomeViewModel 
           return (T) new HomeViewModel(viewModelCImpl.getExpensesUseCase(), viewModelCImpl.getSpendingSummaryUseCase(), viewModelCImpl.deleteExpenseUseCase());
 
-          case 3: // com.spendsync.app.presentation.screens.login.LoginViewModel 
-          return (T) new LoginViewModel(singletonCImpl.authRepositoryImplProvider.get(), singletonCImpl.authDataStoreProvider.get());
-
           case 4: // com.spendsync.app.presentation.screens.settings.SettingsViewModel 
-          return (T) new SettingsViewModel(singletonCImpl.settingsDataStoreProvider.get(), singletonCImpl.authDataStoreProvider.get(), singletonCImpl.bindNotionRepositoryProvider.get());
+          return (T) new SettingsViewModel(singletonCImpl.settingsDataStoreProvider.get(), singletonCImpl.authDataStoreProvider.get(), singletonCImpl.authRepositoryImplProvider.get(), singletonCImpl.bindNotionRepositoryProvider.get(), singletonCImpl.provideWorkManagerProvider.get());
 
           default: throw new AssertionError(id);
         }
@@ -675,13 +674,13 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
 
     private Provider<SettingsDataStore> settingsDataStoreProvider;
 
-    private Provider<AuthRepositoryImpl> authRepositoryImplProvider;
-
     private Provider<CategoryRepositoryImpl> categoryRepositoryImplProvider;
 
     private Provider<CategoryRepository> bindCategoryRepositoryProvider;
 
     private Provider<WorkManager> provideWorkManagerProvider;
+
+    private Provider<AuthRepositoryImpl> authRepositoryImplProvider;
 
     private SingletonCImpl(ApplicationContextModule applicationContextModuleParam) {
       this.applicationContextModule = applicationContextModuleParam;
@@ -726,10 +725,10 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
       this.bindNotionRepositoryProvider = DoubleCheck.provider((Provider) notionRepositoryImplProvider);
       this.notionSyncWorker_AssistedFactoryProvider = SingleCheck.provider(new SwitchingProvider<NotionSyncWorker_AssistedFactory>(singletonCImpl, 5));
       this.settingsDataStoreProvider = DoubleCheck.provider(new SwitchingProvider<SettingsDataStore>(singletonCImpl, 11));
-      this.authRepositoryImplProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepositoryImpl>(singletonCImpl, 12));
-      this.categoryRepositoryImplProvider = new SwitchingProvider<>(singletonCImpl, 13);
+      this.categoryRepositoryImplProvider = new SwitchingProvider<>(singletonCImpl, 12);
       this.bindCategoryRepositoryProvider = DoubleCheck.provider((Provider) categoryRepositoryImplProvider);
-      this.provideWorkManagerProvider = DoubleCheck.provider(new SwitchingProvider<WorkManager>(singletonCImpl, 14));
+      this.provideWorkManagerProvider = DoubleCheck.provider(new SwitchingProvider<WorkManager>(singletonCImpl, 13));
+      this.authRepositoryImplProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepositoryImpl>(singletonCImpl, 14));
     }
 
     @Override
@@ -801,7 +800,7 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
           return (T) new NotionSyncWorker_AssistedFactory() {
             @Override
             public NotionSyncWorker create(Context context2, WorkerParameters params2) {
-              return new NotionSyncWorker(context2, params2, singletonCImpl.bindExpenseRepositoryProvider.get(), singletonCImpl.bindNotionRepositoryProvider.get());
+              return new NotionSyncWorker(context2, params2, singletonCImpl.bindNotionRepositoryProvider.get());
             }
           };
 
@@ -823,14 +822,14 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
           case 11: // com.spendsync.app.data.local.datastore.SettingsDataStore 
           return (T) new SettingsDataStore(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 12: // com.spendsync.app.data.repository.AuthRepositoryImpl 
-          return (T) new AuthRepositoryImpl(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.authDataStoreProvider.get());
-
-          case 13: // com.spendsync.app.data.repository.CategoryRepositoryImpl 
+          case 12: // com.spendsync.app.data.repository.CategoryRepositoryImpl 
           return (T) new CategoryRepositoryImpl(singletonCImpl.categoryDao());
 
-          case 14: // androidx.work.WorkManager 
+          case 13: // androidx.work.WorkManager 
           return (T) WorkerModule_ProvideWorkManagerFactory.provideWorkManager(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 14: // com.spendsync.app.data.repository.AuthRepositoryImpl 
+          return (T) new AuthRepositoryImpl(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.authDataStoreProvider.get());
 
           default: throw new AssertionError(id);
         }

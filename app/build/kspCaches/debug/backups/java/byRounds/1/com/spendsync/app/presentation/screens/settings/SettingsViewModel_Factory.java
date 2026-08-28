@@ -1,7 +1,9 @@
 package com.spendsync.app.presentation.screens.settings;
 
+import androidx.work.WorkManager;
 import com.spendsync.app.data.local.datastore.AuthDataStore;
 import com.spendsync.app.data.local.datastore.SettingsDataStore;
+import com.spendsync.app.domain.repository.AuthRepository;
 import com.spendsync.app.domain.repository.NotionRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -32,37 +34,50 @@ public final class SettingsViewModel_Factory implements Factory<SettingsViewMode
 
   private final Provider<AuthDataStore> authDataStoreProvider;
 
+  private final Provider<AuthRepository> authRepositoryProvider;
+
   private final Provider<NotionRepository> notionRepositoryProvider;
+
+  private final Provider<WorkManager> workManagerProvider;
 
   public SettingsViewModel_Factory(Provider<SettingsDataStore> settingsDataStoreProvider,
       Provider<AuthDataStore> authDataStoreProvider,
-      Provider<NotionRepository> notionRepositoryProvider) {
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<NotionRepository> notionRepositoryProvider,
+      Provider<WorkManager> workManagerProvider) {
     this.settingsDataStoreProvider = settingsDataStoreProvider;
     this.authDataStoreProvider = authDataStoreProvider;
+    this.authRepositoryProvider = authRepositoryProvider;
     this.notionRepositoryProvider = notionRepositoryProvider;
+    this.workManagerProvider = workManagerProvider;
   }
 
   @Override
   public SettingsViewModel get() {
-    return newInstance(settingsDataStoreProvider.get(), authDataStoreProvider.get(), notionRepositoryProvider.get());
+    return newInstance(settingsDataStoreProvider.get(), authDataStoreProvider.get(), authRepositoryProvider.get(), notionRepositoryProvider.get(), workManagerProvider.get());
   }
 
   public static SettingsViewModel_Factory create(
       javax.inject.Provider<SettingsDataStore> settingsDataStoreProvider,
       javax.inject.Provider<AuthDataStore> authDataStoreProvider,
-      javax.inject.Provider<NotionRepository> notionRepositoryProvider) {
-    return new SettingsViewModel_Factory(Providers.asDaggerProvider(settingsDataStoreProvider), Providers.asDaggerProvider(authDataStoreProvider), Providers.asDaggerProvider(notionRepositoryProvider));
+      javax.inject.Provider<AuthRepository> authRepositoryProvider,
+      javax.inject.Provider<NotionRepository> notionRepositoryProvider,
+      javax.inject.Provider<WorkManager> workManagerProvider) {
+    return new SettingsViewModel_Factory(Providers.asDaggerProvider(settingsDataStoreProvider), Providers.asDaggerProvider(authDataStoreProvider), Providers.asDaggerProvider(authRepositoryProvider), Providers.asDaggerProvider(notionRepositoryProvider), Providers.asDaggerProvider(workManagerProvider));
   }
 
   public static SettingsViewModel_Factory create(
       Provider<SettingsDataStore> settingsDataStoreProvider,
       Provider<AuthDataStore> authDataStoreProvider,
-      Provider<NotionRepository> notionRepositoryProvider) {
-    return new SettingsViewModel_Factory(settingsDataStoreProvider, authDataStoreProvider, notionRepositoryProvider);
+      Provider<AuthRepository> authRepositoryProvider,
+      Provider<NotionRepository> notionRepositoryProvider,
+      Provider<WorkManager> workManagerProvider) {
+    return new SettingsViewModel_Factory(settingsDataStoreProvider, authDataStoreProvider, authRepositoryProvider, notionRepositoryProvider, workManagerProvider);
   }
 
   public static SettingsViewModel newInstance(SettingsDataStore settingsDataStore,
-      AuthDataStore authDataStore, NotionRepository notionRepository) {
-    return new SettingsViewModel(settingsDataStore, authDataStore, notionRepository);
+      AuthDataStore authDataStore, AuthRepository authRepository, NotionRepository notionRepository,
+      WorkManager workManager) {
+    return new SettingsViewModel(settingsDataStore, authDataStore, authRepository, notionRepository, workManager);
   }
 }

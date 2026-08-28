@@ -50,13 +50,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun groupExpensesByDate(expenses: List<com.spendsync.app.domain.model.Expense>): Map<String, List<com.spendsync.app.domain.model.Expense>> {
-        return expenses.groupBy { expense ->
-            when (_uiState.value.period) {
-                Period.WEEK -> expense.date.toString().substringBeforeLast("-")
-                Period.MONTH -> expense.date.toString().substringBeforeLast("-")
-                Period.YEAR -> expense.date.toString().substringBeforeLast("-")
-            }
-        }
+        return expenses
+            .sortedByDescending { it.date }
+            .groupBy { expense -> expense.date.toString() }
     }
 
     fun deleteExpense(expense: com.spendsync.app.domain.model.Expense) {
