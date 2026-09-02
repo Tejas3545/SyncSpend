@@ -1,2 +1,0 @@
-// Root Gradle settings delegating to android module
-apply from: 'android/settings.gradle'

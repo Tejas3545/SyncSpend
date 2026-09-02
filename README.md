@@ -46,14 +46,19 @@ A 100% free, native Android expense tracking application with Notion sync. No su
 Ensure you have **Java 17 or 21** installed and `JAVA_HOME` set in your environment:
 
 ```powershell
-# From the SyncSpend root directory, navigate into the android project:
+# In Windows PowerShell:
 cd android
-./gradlew assembleDebug
+.\gradlew.bat assembleDebug
 ```
 Or in Windows Command Prompt:
 ```cmd
 cd android
 gradlew assembleDebug
+```
+Or in Linux / macOS:
+```bash
+cd android
+./gradlew assembleDebug
 ```
 
 The APK will be generated at:
