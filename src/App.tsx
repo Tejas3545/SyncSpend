@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Expense, Category, PaymentMethod, Period, Settings } from './types';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Expense, Category, PaymentMethod, Period, Settings, SpendingSummary } from './types';
 import { StorageService } from './services/storageService';
-import { NotionService } from './services/notionService';
-import { TotalSpendingCard } from './components/TotalSpendingCard';
-import { SpendingChart } from './components/SpendingChart';
+import { SyncManager } from './services/syncManager';
+import { PhoneFrame } from './components/PhoneFrame';
+import { AccountSwitcher } from './components/AccountSwitcher';
+import { MainSpendingCard } from './components/MainSpendingCard';
 import { ExpenseItem } from './components/ExpenseItem';
 import { AddExpenseModal } from './components/AddExpenseModal';
+import { ShortcutsModal } from './components/ShortcutsModal';
+import { WidgetsModal } from './components/WidgetsModal';
 import { HistoryModal } from './components/HistoryModal';
 import { SettingsModal } from './components/SettingsModal';
-import { formatDateHeader, toLocalDateString } from './utils/dateUtils';
-import { Plus, Settings as SettingsIcon, Search } from 'lucide-react';
+import { toLocalDateString } from './utils/dateUtils';
+import { Search, Layers, Settings as SettingsIcon, Plus } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -17,23 +20,32 @@ export const App: React.FC = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [settings, setSettings] = useState<Settings>(StorageService.getSettings());
   const [period, setPeriod] = useState<Period>('WEEK');
+  const [currentAccount, setCurrentAccount] = useState<string>(settings.accountName || 'Personal');
 
-  // Modals state
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
+  // Network & Sync State
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
-  // Load data on mount
+  // Modals
+  const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+  const [isWidgetsOpen, setIsWidgetsOpen] = useState<boolean>(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  // Initialize data on mount
   useEffect(() => {
     setExpenses(StorageService.getExpenses());
     setCategories(StorageService.getCategories());
     setPaymentMethods(StorageService.getPaymentMethods());
-    setSettings(StorageService.getSettings());
+    const storedSettings = StorageService.getSettings();
+    setSettings(storedSettings);
+    setCurrentAccount(storedSettings.accountName || 'Personal');
+    setIsOnline(SyncManager.isOnline());
   }, []);
 
-  // Handle Theme
+  // Theme effect
   useEffect(() => {
     const root = document.documentElement;
     if (settings.theme === 'dark') {
@@ -41,7 +53,6 @@ export const App: React.FC = () => {
     } else if (settings.theme === 'light') {
       root.classList.remove('dark');
     } else {
-      // System
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (prefersDark) {
         root.classList.add('dark');
@@ -51,16 +62,62 @@ export const App: React.FC = () => {
     }
   }, [settings.theme]);
 
-  // Map for fast lookups
+  // Trigger sync in background
+  const triggerSync = useCallback(async () => {
+    if (!settings.isNotionEnabled && !settings.isGoogleSheetsEnabled) return;
+    setIsSyncing(true);
+    setSyncNotice(null);
+    try {
+      const res = await SyncManager.syncAllPending(settings);
+      setExpenses(StorageService.getExpenses());
+      if (res.errors.length > 0) {
+        setSyncNotice(`Sync Notice: ${res.errors[0]}`);
+      } else if (res.syncedNotion > 0 || res.syncedGoogle > 0) {
+        setSyncNotice(`Synced ${res.syncedNotion + res.syncedGoogle} item(s) to cloud!`);
+        setTimeout(() => setSyncNotice(null), 3000);
+      }
+    } catch (e) {
+      console.error('Sync error', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [settings]);
+
+  // Offline / Online listeners with auto-sync
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (settings.autoSyncOnOnline) {
+        triggerSync();
+      }
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [settings.autoSyncOnOnline, triggerSync]);
+
+  // Maps for fast lookups
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   const paymentMethodMap = useMemo(() => new Map(paymentMethods.map((p) => [p.id, p])), [paymentMethods]);
 
-  // Period filtering logic
+  // Filter expenses by account & period
+  const accountExpenses = useMemo(() => {
+    return expenses.filter((e) => !e.account || e.account === currentAccount);
+  }, [expenses, currentAccount]);
+
   const filteredExpenses = useMemo(() => {
     const now = new Date();
     const nowTime = now.getTime();
 
-    return expenses.filter((e) => {
+    return accountExpenses.filter((e) => {
       if (period === 'ALL') return true;
 
       const expDate = new Date(e.date + 'T00:00:00');
@@ -72,136 +129,139 @@ export const App: React.FC = () => {
 
       return true;
     });
-  }, [expenses, period]);
+  }, [accountExpenses, period]);
 
   const totalSpending = useMemo(() => {
     return filteredExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   }, [filteredExpenses]);
 
-  // Chart data calculation
+  // Spending summary for Widgets modal (Matching Screenshot 2)
+  const spendingSummary: SpendingSummary = useMemo(() => {
+    const now = new Date();
+    const nowTime = now.getTime();
+
+    let week = 0;
+    let month = 0;
+    let year = 0;
+    let all = 0;
+
+    for (const e of accountExpenses) {
+      const expDate = new Date(e.date + 'T00:00:00');
+      const diffDays = Math.floor((nowTime - expDate.getTime()) / (1000 * 60 * 60 * 24));
+      all += e.amount;
+      if (diffDays <= 7) week += e.amount;
+      if (diffDays <= 30) month += e.amount;
+      if (diffDays <= 365) year += e.amount;
+    }
+
+    return {
+      totalThisWeek: week,
+      totalThisMonth: month,
+      totalThisYear: year,
+      totalAllTime: all,
+      dailyBreakdown: [],
+    };
+  }, [accountExpenses]);
+
+  // 7-day chart data (Sun - Sat or last 7 days)
   const chartData = useMemo(() => {
     const today = new Date();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = toLocalDateString(d);
+      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
 
-    if (period === 'WEEK') {
-      // 7 days (last 7 days from today)
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dateStr = toLocalDateString(d);
-        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const amount = accountExpenses
+        .filter((e) => e.date === dateStr)
+        .reduce((sum, e) => sum + e.amount, 0);
 
-        const amount = expenses
-          .filter((e) => e.date === dateStr)
-          .reduce((sum, e) => sum + e.amount, 0);
-
-        days.push({ label: dayLabel, amount, dateStr });
-      }
-      return days;
+      days.push({ label: dayLabel, amount, dateStr });
     }
+    return days;
+  }, [accountExpenses]);
 
-    if (period === 'MONTH') {
-      // 4 weekly blocks in the month
-      const weeks = [];
-      for (let w = 3; w >= 0; w--) {
-        const startDay = new Date(today);
-        startDay.setDate(startDay.getDate() - w * 7);
-        const endDay = new Date(startDay);
-        endDay.setDate(endDay.getDate() + 6);
+  // Grouped expenses for main feed (Matching Screenshot 1: "Latest", "Monday", etc.)
+  const groupedSections = useMemo(() => {
+    const groups: { [key: string]: Expense[] } = {};
+    const todayStr = toLocalDateString(new Date());
 
-        const label = `W${4 - w}`;
-        const amount = expenses
-          .filter((e) => {
-            const d = new Date(e.date + 'T00:00:00');
-            return d >= new Date(startDay.getFullYear(), startDay.getMonth(), startDay.getDate()) &&
-                   d <= new Date(endDay.getFullYear(), endDay.getMonth(), endDay.getDate());
-          })
-          .reduce((sum, e) => sum + e.amount, 0);
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = toLocalDateString(yesterdayDate);
 
-        weeks.push({ label, amount, dateStr: toLocalDateString(startDay) });
-      }
-      return weeks;
-    }
-
-    if (period === 'YEAR') {
-      // 12 months
-      const months = [];
-      for (let m = 11; m >= 0; m--) {
-        const d = new Date(today.getFullYear(), today.getMonth() - m, 1);
-        const label = d.toLocaleDateString('en-US', { month: 'short' });
-        const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-        const amount = expenses
-          .filter((e) => e.date.startsWith(yearMonth))
-          .reduce((sum, e) => sum + e.amount, 0);
-
-        months.push({ label, amount, dateStr: yearMonth });
-      }
-      return months;
-    }
-
-    // ALL TIME: top 6 categories breakdown
-    const catTotals: { [id: string]: number } = {};
-    for (const e of expenses) {
-      catTotals[e.categoryId] = (catTotals[e.categoryId] || 0) + e.amount;
-    }
-    return categories.slice(0, 6).map((c) => ({
-      label: c.emoji,
-      amount: catTotals[c.id] || 0,
-      dateStr: c.name,
-    }));
-  }, [expenses, period, categories]);
-
-  // Group latest expenses by date (up to recent 10 transactions)
-  const groupedRecentExpenses = useMemo(() => {
-    const recent = [...expenses].slice(0, 10);
-    const groups: { [date: string]: Expense[] } = {};
-    for (const exp of recent) {
-      if (!groups[exp.date]) {
-        groups[exp.date] = [];
-      }
-      groups[exp.date].push(exp);
-    }
-    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, [expenses]);
-
-  // Add Expense
-  const handleAddExpense = async (data: Omit<Expense, 'id' | 'createdAt'>) => {
-    const created = StorageService.addExpense(data);
-    const updated = StorageService.getExpenses();
-    setExpenses(updated);
-
-    // If Notion is configured, attempt auto sync
-    if (settings.notionToken && settings.notionDatabaseId) {
-      try {
-        const cat = categoryMap.get(created.categoryId);
-        const pm = created.paymentMethodId ? paymentMethodMap.get(created.paymentMethodId) : undefined;
-        const syncResult = await NotionService.syncExpense(
-          created,
-          cat,
-          pm,
-          settings.notionToken,
-          settings.notionDatabaseId
-        );
-        if (syncResult.success && syncResult.pageId) {
-          StorageService.updateExpense(created.id, { isSynced: true, notionPageId: syncResult.pageId });
-          setExpenses(StorageService.getExpenses());
+    for (const exp of filteredExpenses) {
+      let groupKey = exp.date;
+      if (exp.date === todayStr) {
+        groupKey = 'Latest';
+      } else if (exp.date === yesterdayStr) {
+        groupKey = yesterdayDate.toLocaleDateString('en-US', { weekday: 'long' });
+      } else {
+        const parts = exp.date.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          groupKey = d.toLocaleDateString('en-US', { weekday: 'long' });
         }
-      } catch (err) {
-        console.warn('Background Notion sync error', err);
       }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(exp);
+    }
+
+    return Object.entries(groups);
+  }, [filteredExpenses]);
+
+  // Pending unsynced count
+  const pendingSyncCount = useMemo(() => {
+    return expenses.filter(
+      (e) =>
+        (settings.isNotionEnabled && !e.isNotionSynced) ||
+        (settings.isGoogleSheetsEnabled && !e.isGoogleSynced)
+    ).length;
+  }, [expenses, settings]);
+
+  // CRUD Handlers
+  const handleSaveExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+    const newExpense = StorageService.addExpense(expenseData);
+    setExpenses(StorageService.getExpenses());
+
+    // Auto sync immediately if online
+    if (isOnline && (settings.isNotionEnabled || settings.isGoogleSheetsEnabled)) {
+      await SyncManager.syncSingleExpense(newExpense, settings);
+      setExpenses(StorageService.getExpenses());
     }
   };
 
-  // Delete Expense
   const handleDeleteExpense = (id: string) => {
     StorageService.deleteExpense(id);
     setExpenses(StorageService.getExpenses());
   };
 
-  // Category & Payment method handlers
-  const handleAddCategory = (name: string, emoji: string) => {
-    StorageService.addCategory(name, emoji);
+  const handleUpdateSettings = (newSettings: Settings) => {
+    StorageService.saveSettings(newSettings);
+    setSettings(newSettings);
+  };
+
+  const handleSelectAccount = (acc: string) => {
+    setCurrentAccount(acc);
+    const updated = { ...settings, accountName: acc };
+    StorageService.saveSettings(updated);
+    setSettings(updated);
+  };
+
+  const handleAddAccount = (acc: string) => {
+    const updatedAccounts = Array.from(new Set([...(settings.accounts || []), acc]));
+    const updated = { ...settings, accounts: updatedAccounts, accountName: acc };
+    StorageService.saveSettings(updated);
+    setSettings(updated);
+    setCurrentAccount(acc);
+  };
+
+  const handleAddCategory = (name: string, iconName: string = 'tag') => {
+    StorageService.addCategory(name, iconName);
     setCategories(StorageService.getCategories());
   };
 
@@ -220,233 +280,215 @@ export const App: React.FC = () => {
     setPaymentMethods(StorageService.getPaymentMethods());
   };
 
-  // Settings update
-  const handleSaveSettings = (newSettings: Settings) => {
-    StorageService.saveSettings(newSettings);
-    setSettings(newSettings);
-  };
-
-  // Export CSV
   const handleExportCSV = () => {
     const csvContent = StorageService.exportToCSV();
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `spendsync_export_${toLocalDateString(new Date())}.csv`);
+    link.href = url;
+    link.setAttribute('download', `syncspend_expenses_${toLocalDateString(new Date())}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Trigger Notion Sync
-  const handleTriggerSync = async () => {
-    if (!settings.notionToken || !settings.notionDatabaseId) return;
-
-    setIsSyncing(true);
-    setSyncNotice(null);
-
-    const unsynced = expenses.filter((e) => !e.isSynced);
-    if (unsynced.length === 0) {
-      setSyncNotice('All transactions are already synced.');
-      setIsSyncing(false);
-      return;
-    }
-
-    let syncedCount = 0;
-    for (const exp of unsynced) {
-      const cat = categoryMap.get(exp.categoryId);
-      const pm = exp.paymentMethodId ? paymentMethodMap.get(exp.paymentMethodId) : undefined;
-      const res = await NotionService.syncExpense(
-        exp,
-        cat,
-        pm,
-        settings.notionToken,
-        settings.notionDatabaseId
-      );
-      if (res.success && res.pageId) {
-        StorageService.updateExpense(exp.id, { isSynced: true, notionPageId: res.pageId });
-        syncedCount++;
-      }
-    }
-
-    setExpenses(StorageService.getExpenses());
-    setIsSyncing(false);
-    setSyncNotice(`Successfully synced ${syncedCount} of ${unsynced.length} records to Notion.`);
-    setTimeout(() => setSyncNotice(null), 4000);
+  const handleResetSampleData = () => {
+    const reset = StorageService.resetToSampleData();
+    setExpenses(reset);
+    setSyncNotice('Official SyncSpend sample data reloaded.');
+    setTimeout(() => setSyncNotice(null), 3000);
   };
 
-  const isNotionConfigured = Boolean(settings.notionToken && settings.notionDatabaseId);
-
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors">
-      {/* Centered Mobile/Desktop Container */}
-      <div className="mx-auto max-w-lg min-h-screen flex flex-col px-4 pt-4 pb-24 sm:px-6">
-        {/* Top App Bar Header */}
-        <header className="flex items-center justify-between py-2">
-          {/* Workspace / Account Title */}
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-              SpendSync
-            </h1>
-            <span className="rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-semibold text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
-              {settings.accountName}
-            </span>
-          </div>
+    <PhoneFrame
+      fitToFrame={settings.fitToFrame ?? true}
+      onToggleFitToFrame={() => {
+        const next = !settings.fitToFrame;
+        const updated = { ...settings, fitToFrame: next };
+        StorageService.saveSettings(updated);
+        setSettings(updated);
+      }}
+      isOnline={isOnline}
+      pendingSyncCount={pendingSyncCount}
+      onQuickAddShortcut={() => setIsShortcutsOpen(true)}
+      onOpenWidgets={() => setIsWidgetsOpen(true)}
+    >
+      {/* Pinned Top Navigation Bar (Matching Screenshot 1) */}
+      <div className="shrink-0 px-5 pt-3 pb-2 flex items-center justify-between z-30 select-none">
+        {/* Left: Account Switcher Pill ("Personal ▾") */}
+        <AccountSwitcher
+          currentAccount={currentAccount}
+          accounts={settings.accounts || ['Personal', 'Business', 'Joint']}
+          onSelectAccount={handleSelectAccount}
+          onAddAccount={handleAddAccount}
+        />
 
-          {/* Actions: Search & Settings */}
-          <div className="flex items-center gap-1">
-            <button
-              id="btn-open-search"
-              onClick={() => setIsHistoryOpen(true)}
-              title="Search and History"
-              className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100 text-neutral-800 dark:text-neutral-200 dark:hover:bg-[#1C1C1E] transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-
-            <button
-              id="btn-open-settings"
-              onClick={() => setIsSettingsOpen(true)}
-              title="Settings"
-              className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100 text-neutral-800 dark:text-neutral-200 dark:hover:bg-[#1C1C1E] transition-colors"
-            >
-              <SettingsIcon className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
-
-        {/* Cloud Sync Alert Banner if triggered */}
-        {syncNotice && (
-          <div className="mt-2 rounded-xl bg-emerald-50 px-3.5 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 transition-all flex items-center justify-between">
-            <span>{syncNotice}</span>
-            <button onClick={() => setSyncNotice(null)} className="text-xs font-bold">×</button>
-          </div>
-        )}
-
-        {/* Main Dashboard Content */}
-        <main className="mt-4 flex-1 space-y-4">
-          {/* Total Spending Card */}
-          <TotalSpendingCard
-            amount={totalSpending}
-            period={period}
-            currencySymbol={settings.currencySymbol}
-            itemCount={filteredExpenses.length}
-          />
-
-          {/* Spending Bar Chart & Period Selector */}
-          <SpendingChart
-            data={chartData}
-            period={period}
-            onPeriodChange={setPeriod}
-            currencySymbol={settings.currencySymbol}
-          />
-
-          {/* Section: Latest Transactions */}
-          <section className="pt-2">
-            <div className="flex items-center justify-between pb-2.5">
-              <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                Recent Expenses
-              </h2>
-              <button
-                id="btn-view-all-history"
-                onClick={() => setIsHistoryOpen(true)}
-                className="text-xs font-semibold text-[#007AFF] hover:underline"
-              >
-                View All ({expenses.length})
-              </button>
-            </div>
-
-            {/* List grouped by date */}
-            {groupedRecentExpenses.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-neutral-200 p-8 text-center dark:border-neutral-800">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  No expenses recorded yet.
-                </p>
-                <button
-                  id="btn-add-first-expense"
-                  onClick={() => setIsAddOpen(true)}
-                  className="mt-3 rounded-full bg-black px-4 py-2 text-xs font-semibold text-white dark:bg-white dark:text-black hover:opacity-90"
-                >
-                  Log your first expense
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {groupedRecentExpenses.map(([dateStr, dayExpenses]) => (
-                  <div key={dateStr} className="space-y-1.5">
-                    <p className="px-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                      {formatDateHeader(dateStr)}
-                    </p>
-                    <div className="space-y-2">
-                      {dayExpenses.map((exp) => (
-                        <ExpenseItem
-                          key={exp.id}
-                          expense={exp}
-                          category={categoryMap.get(exp.categoryId)}
-                          paymentMethod={exp.paymentMethodId ? paymentMethodMap.get(exp.paymentMethodId) : undefined}
-                          currencySymbol={settings.currencySymbol}
-                          onDelete={handleDeleteExpense}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </main>
-
-        {/* Floating Action Button (FAB) */}
-        <div className="fixed bottom-6 right-6 sm:right-auto sm:left-1/2 sm:translate-x-44 z-40">
+        {/* Right: Action Buttons in Liquid Glass Circles */}
+        <div className="flex items-center gap-2">
+          {/* Search Button */}
           <button
-            id="fab-add-expense"
-            onClick={() => setIsAddOpen(true)}
-            aria-label="Add Expense"
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-xl hover:scale-105 active:scale-95 transition-all dark:bg-white dark:text-black"
+            id="btn-nav-search"
+            onClick={() => setIsHistoryOpen(true)}
+            className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:opacity-80 active:scale-95 transition-all shadow-xs"
+            title="Search & History"
           >
-            <Plus className="h-6 w-6 stroke-[2.5]" />
+            <Search className="w-4 h-4" />
+          </button>
+
+          {/* Widgets / Spending Trends Button */}
+          <button
+            id="btn-nav-widgets"
+            onClick={() => setIsWidgetsOpen(true)}
+            className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:opacity-80 active:scale-95 transition-all shadow-xs"
+            title="Spending Trends & Widgets"
+          >
+            <Layers className="w-4 h-4" />
+          </button>
+
+          {/* Settings Button */}
+          <button
+            id="btn-nav-settings"
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-neutral-700 dark:text-neutral-200 hover:opacity-80 active:scale-95 transition-all shadow-xs"
+            title="Settings & Cloud Sync"
+          >
+            <SettingsIcon className="w-4 h-4" />
           </button>
         </div>
-
-        {/* Modals */}
-        <AddExpenseModal
-          isOpen={isAddOpen}
-          onClose={() => setIsAddOpen(false)}
-          onSave={handleAddExpense}
-          categories={categories}
-          paymentMethods={paymentMethods}
-          currencySymbol={settings.currencySymbol}
-          isNotionConfigured={isNotionConfigured}
-        />
-
-        <HistoryModal
-          isOpen={isHistoryOpen}
-          onClose={() => setIsHistoryOpen(false)}
-          expenses={expenses}
-          categories={categories}
-          paymentMethods={paymentMethods}
-          currencySymbol={settings.currencySymbol}
-          onDeleteExpense={handleDeleteExpense}
-          onExportCSV={handleExportCSV}
-        />
-
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          settings={settings}
-          onSaveSettings={handleSaveSettings}
-          categories={categories}
-          onAddCategory={handleAddCategory}
-          onDeleteCategory={handleDeleteCategory}
-          paymentMethods={paymentMethods}
-          onAddPaymentMethod={handleAddPaymentMethod}
-          onDeletePaymentMethod={handleDeletePaymentMethod}
-          onExportCSV={handleExportCSV}
-          onTriggerSync={handleTriggerSync}
-          isSyncing={isSyncing}
-        />
       </div>
-    </div>
+
+      {/* Sync notification toast */}
+      {syncNotice && (
+        <div className="shrink-0 mx-5 my-1 px-3 py-1.5 rounded-full bg-neutral-900/90 text-white text-[11px] text-center shadow-lg transition-all animate-fade-in z-30">
+          {syncNotice}
+        </div>
+      )}
+
+      {/* Main Scrollable Viewport (strictly scrolls inside the phone screen) */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 pt-2 space-y-5">
+        {/* Main Spending Card with Bar Chart (Exact Match to Screenshot 1) */}
+        <MainSpendingCard
+          amount={totalSpending}
+          chartData={chartData}
+          period={period}
+          onPeriodChange={setPeriod}
+          currencySymbol={settings.currencySymbol || '$'}
+        />
+
+        {/* Grouped Expenses List (Exact Match to Screenshot 1: "Latest", "Monday", etc.) */}
+        {groupedSections.length === 0 ? (
+          <div className="py-12 text-center rounded-[28px] liquid-glass-card p-6">
+            <p className="text-sm font-medium text-neutral-500">No expenses in this period.</p>
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="mt-3 px-4 py-1.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black text-xs font-semibold shadow-xs hover:opacity-90"
+            >
+              Log an Expense
+            </button>
+          </div>
+        ) : (
+          groupedSections.map(([sectionTitle, items]) => (
+            <div key={sectionTitle} className="space-y-1.5">
+              {/* Section Header */}
+              <span className="text-[13px] font-medium text-neutral-400 dark:text-neutral-500 pl-2">
+                {sectionTitle}
+              </span>
+
+              {/* White Group Card */}
+              <div className="liquid-glass-card rounded-[24px] divide-y divide-neutral-100 dark:divide-neutral-800/80 p-1">
+                {items.map((exp) => (
+                  <ExpenseItem
+                    key={exp.id}
+                    expense={exp}
+                    category={categoryMap.get(exp.categoryId)}
+                    paymentMethod={exp.paymentMethodId ? paymentMethodMap.get(exp.paymentMethodId) : undefined}
+                    currencySymbol={settings.currencySymbol || '$'}
+                    onDelete={handleDeleteExpense}
+                    onClick={() => setIsHistoryOpen(true)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Floating Action Button (+) at bottom right (Exact Match to Screenshot 1) */}
+      <div className="absolute right-5 bottom-6 z-30">
+        <button
+          id="btn-add-expense-fab"
+          onClick={() => setIsAddOpen(true)}
+          className="w-13 h-13 rounded-full bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shadow-[0_10px_25px_-5px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95 transition-all"
+          title="Add Expense"
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* Add Expense Modal with Smart Suggestions (Screenshot 5) */}
+      <AddExpenseModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSave={handleSaveExpense}
+        categories={categories}
+        paymentMethods={paymentMethods}
+        currencySymbol={settings.currencySymbol || '$'}
+        account={currentAccount}
+      />
+
+      {/* Shortcuts / Quick Log Modal (Screenshot 3) */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+        onQuickSave={handleSaveExpense}
+        currencySymbol={settings.currencySymbol || '$'}
+        defaultCategoryId={categories[0]?.id || 'cat-1'}
+        defaultPaymentMethodId={paymentMethods[0]?.id}
+        account={currentAccount}
+      />
+
+      {/* Widgets Preview Modal (Screenshot 2) */}
+      <WidgetsModal
+        isOpen={isWidgetsOpen}
+        onClose={() => setIsWidgetsOpen(false)}
+        summary={spendingSummary}
+        currencySymbol={settings.currencySymbol || '$'}
+        isNotionConfigured={Boolean(settings.isNotionEnabled && settings.notionToken && settings.notionDatabaseId)}
+        isGoogleConfigured={Boolean(settings.isGoogleSheetsEnabled && settings.googleSheetsWebhookUrl)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+
+      {/* Search & History Modal */}
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        expenses={accountExpenses}
+        categories={categories}
+        paymentMethods={paymentMethods}
+        currencySymbol={settings.currencySymbol || '$'}
+        onDeleteExpense={handleDeleteExpense}
+        onExportCSV={handleExportCSV}
+      />
+
+      {/* Settings & Integrations Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSaveSettings={handleUpdateSettings}
+        categories={categories}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
+        paymentMethods={paymentMethods}
+        onAddPaymentMethod={handleAddPaymentMethod}
+        onDeletePaymentMethod={handleDeletePaymentMethod}
+        onExportCSV={handleExportCSV}
+        onTriggerSync={triggerSync}
+        onResetSampleData={handleResetSampleData}
+        isSyncing={isSyncing}
+        isOnline={isOnline}
+        pendingSyncCount={pendingSyncCount}
+      />
+    </PhoneFrame>
   );
 };

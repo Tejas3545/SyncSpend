@@ -2,28 +2,173 @@
 
 @layer base {
   :root {
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-sans: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   
   body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #0b0c10;
+    color: #1c1c1e;
+    user-select: none;
+    letter-spacing: -0.015em;
   }
 }
 
-/* Custom scrollbar for minimalist monochrome aesthetic */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Telegram / iOS Authentic Liquid Glass System */
+
+/* 1. Liquid Glass Base (buttons, pill headers, floating controls) */
+.liquid-glass {
+  position: relative;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.58) 40%,
+    rgba(242, 246, 255, 0.35) 75%,
+    rgba(255, 255, 255, 0.72) 100%
+  );
+  backdrop-filter: blur(28px) saturate(210%) contrast(105%) brightness(102%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(105%) brightness(102%);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1.5px 1px 0 rgba(255, 255, 255, 0.3),
+    inset 1px 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 10px 28px -4px rgba(0, 0, 0, 0.07),
+    0 2px 6px -1px rgba(0, 0, 0, 0.03);
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  pointer-events: none;
+  opacity: 0.9;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.25);
-  border-radius: 9999px;
+
+.dark .liquid-glass {
+  background: linear-gradient(135deg,
+    rgba(40, 42, 48, 0.78) 0%,
+    rgba(28, 30, 35, 0.68) 45%,
+    rgba(22, 24, 30, 0.72) 100%
+  );
+  backdrop-filter: blur(28px) saturate(210%) contrast(108%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(108%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.06),
+    inset 1px 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset -1px 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55),
+    0 2px 8px -1px rgba(0, 0, 0, 0.3);
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.45);
+
+.dark .liquid-glass::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0.6;
+}
+
+/* 2. Liquid Glass Card (Main Spending Card, Expense Groups, Dialogs) */
+.liquid-glass-card {
+  position: relative;
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(244, 247, 255, 0.58) 80%,
+    rgba(255, 255, 255, 0.82) 100%
+  );
+  backdrop-filter: blur(32px) saturate(220%) contrast(104%);
+  -webkit-backdrop-filter: blur(32px) saturate(220%) contrast(104%);
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  box-shadow:
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    0 16px 42px -8px rgba(0, 0, 0, 0.06),
+    0 4px 14px -2px rgba(0, 0, 0, 0.03);
+}
+
+.liquid-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.dark .liquid-glass-card {
+  background: linear-gradient(145deg,
+    rgba(34, 35, 40, 0.80) 0%,
+    rgba(24, 25, 30, 0.72) 50%,
+    rgba(18, 20, 26, 0.78) 100%
+  );
+  backdrop-filter: blur(32px) saturate(210%) contrast(108%);
+  -webkit-backdrop-filter: blur(32px) saturate(210%) contrast(108%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.06),
+    inset 1px 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset -1px 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 20px 52px -10px rgba(0, 0, 0, 0.65),
+    0 4px 16px -2px rgba(0, 0, 0, 0.4);
+}
+
+.dark .liquid-glass-card::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0.6;
+}
+
+/* 3. Liquid Glass Subtle (nested surfaces, secondary chips) */
+.liquid-glass-subtle {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.dark .liquid-glass-subtle {
+  background: rgba(36, 36, 42, 0.65);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+/* 4. Ambient Liquid Canvas Substrates (allows refraction to shine through) */
+.liquid-substrate-light {
+  background:
+    radial-gradient(at 15% 15%, rgba(215, 232, 255, 0.55) 0px, transparent 65%),
+    radial-gradient(at 85% 85%, rgba(238, 228, 255, 0.50) 0px, transparent 65%),
+    radial-gradient(at 50% 50%, rgba(245, 248, 255, 0.4) 0px, transparent 75%),
+    #F4F4F7;
+}
+
+.liquid-substrate-dark {
+  background:
+    radial-gradient(at 15% 15%, rgba(28, 44, 76, 0.6) 0px, transparent 65%),
+    radial-gradient(at 85% 85%, rgba(48, 26, 64, 0.5) 0px, transparent 65%),
+    radial-gradient(at 50% 50%, rgba(20, 24, 36, 0.5) 0px, transparent 75%),
+    #090A0E;
+}
+
+/* Hide scrollbar for clean app container */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

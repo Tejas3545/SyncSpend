@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Settings, Category, PaymentMethod } from '../types';
 import { NotionService } from '../services/notionService';
+import { GoogleSheetsService } from '../services/googleSheetsService';
+import { CategoryIcon, AVAILABLE_CATEGORY_ICONS } from './CategoryIcon';
 import {
   X,
   Eye,
@@ -11,10 +14,12 @@ import {
   Plus,
   Trash2,
   Download,
-  ShieldCheck,
+  Copy,
+  Check,
   Moon,
   Sun,
   Laptop,
+  Table,
 } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -23,14 +28,17 @@ interface SettingsModalProps {
   settings: Settings;
   onSaveSettings: (settings: Settings) => void;
   categories: Category[];
-  onAddCategory: (name: string, emoji: string) => void;
+  onAddCategory: (name: string, iconName: string) => void;
   onDeleteCategory: (id: string) => void;
   paymentMethods: PaymentMethod[];
   onAddPaymentMethod: (name: string) => void;
   onDeletePaymentMethod: (id: string) => void;
   onExportCSV: () => void;
   onTriggerSync: () => Promise<void>;
+  onResetSampleData: () => void;
   isSyncing: boolean;
+  isOnline: boolean;
+  pendingSyncCount: number;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -46,341 +54,510 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onDeletePaymentMethod,
   onExportCSV,
   onTriggerSync,
+  onResetSampleData,
   isSyncing,
+  isOnline,
+  pendingSyncCount,
 }) => {
-  const [token, setToken] = useState(settings.notionToken);
-  const [dbId, setDbId] = useState(settings.notionDatabaseId);
+  const [activeTab, setActiveTab] = useState<'sync' | 'preferences' | 'categories'>('sync');
+
+  // Notion state
+  const [notionToken, setNotionToken] = useState(settings.notionToken);
+  const [notionDbId, setNotionDbId] = useState(settings.notionDatabaseId);
+  const [isNotionEnabled, setIsNotionEnabled] = useState(settings.isNotionEnabled);
+  const [showNotionToken, setShowNotionToken] = useState(false);
+  const [notionTestResult, setNotionTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTestingNotion, setIsTestingNotion] = useState(false);
+
+  // Google Sheets state
+  const [googleWebhookUrl, setGoogleWebhookUrl] = useState(settings.googleSheetsWebhookUrl);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(settings.isGoogleSheetsEnabled);
+  const [googleTestResult, setGoogleTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTestingGoogle, setIsTestingGoogle] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
+
+  // Preferences state
   const [theme, setTheme] = useState(settings.theme);
-  const [showToken, setShowToken] = useState(false);
+  const [currency, setCurrency] = useState(settings.currencySymbol || '$');
+  const [autoSync, setAutoSync] = useState(settings.autoSyncOnOnline ?? true);
 
-  // Test connection state
-  const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-
-  // Add category state
+  // Categories & Payment state
   const [newCatName, setNewCatName] = useState('');
-  const [newCatEmoji, setNewCatEmoji] = useState('🏷️');
-
-  // Add payment method state
+  const [newCatIcon, setNewCatIcon] = useState('utensils');
   const [newPmName, setNewPmName] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSaveNotion = () => {
+  const handleSaveAll = () => {
     onSaveSettings({
       ...settings,
-      notionToken: token.trim(),
-      notionDatabaseId: dbId.trim(),
+      notionToken: notionToken.trim(),
+      notionDatabaseId: notionDbId.trim(),
+      isNotionEnabled,
+      googleSheetsWebhookUrl: googleWebhookUrl.trim(),
+      isGoogleSheetsEnabled: isGoogleEnabled,
+      theme,
+      currencySymbol: currency,
+      autoSyncOnOnline: autoSync,
     });
+    onClose();
   };
 
-  const handleTestConnection = async () => {
-    setIsTesting(true);
-    setTestResult(null);
-    const res = await NotionService.testConnection(token, dbId);
-    setTestResult(res);
-    setIsTesting(false);
+  const handleTestNotion = async () => {
+    setIsTestingNotion(true);
+    setNotionTestResult(null);
+    const res = await NotionService.testConnection(notionToken, notionDbId);
+    setNotionTestResult(res);
+    setIsTestingNotion(false);
   };
 
-  const handleThemeChange = (newTheme: 'system' | 'light' | 'dark') => {
-    setTheme(newTheme);
-    onSaveSettings({
-      ...settings,
-      theme: newTheme,
-    });
+  const handleTestGoogle = async () => {
+    setIsTestingGoogle(true);
+    setGoogleTestResult(null);
+    const res = await GoogleSheetsService.testConnection(googleWebhookUrl);
+    setGoogleTestResult(res);
+    setIsTestingGoogle(false);
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-    onAddCategory(newCatName.trim(), newCatEmoji.trim() || '🏷️');
-    setNewCatName('');
-  };
-
-  const handleCreatePaymentMethod = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPmName.trim()) return;
-    onAddPaymentMethod(newPmName.trim());
-    setNewPmName('');
+  const handleCopyScript = () => {
+    const script = GoogleSheetsService.getAppsScriptTemplate();
+    navigator.clipboard.writeText(script);
+    setCopiedScript(true);
+    setTimeout(() => setCopiedScript(false), 2500);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
-      <div
-        id="settings-modal"
-        className="relative w-full max-w-xl h-full sm:h-auto sm:max-h-[90vh] overflow-hidden rounded-none sm:rounded-3xl bg-white shadow-2xl dark:bg-[#121212] flex flex-col"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 dark:border-neutral-800">
-          <h2 className="text-lg font-bold text-black dark:text-white">Settings</h2>
-          <button
-            id="btn-close-settings"
-            onClick={onClose}
-            className="p-1.5 text-neutral-500 hover:text-black dark:hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Scrollable Settings Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-          {/* SECTION 1: Notion Integration */}
-          <div className="rounded-2xl bg-[#F5F5F5] p-5 dark:bg-[#1C1C1E] space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-black dark:text-white">
-                Notion Integration
-              </h3>
-              <span className="rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
-                Zero Cloud Costs
-              </span>
-            </div>
-
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-              Sync expenses directly to your Notion database using your private integration token.
-            </p>
-
-            <div className="space-y-3">
-              {/* Token Input */}
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                  Integration Token (secret_...)
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    id="input-notion-token"
-                    type={showToken ? 'text' : 'password'}
-                    placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxx"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 pr-10 text-xs text-black outline-none dark:border-neutral-800 dark:bg-[#2C2C2E] dark:text-white font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowToken(!showToken)}
-                    className="absolute right-3 text-neutral-400 hover:text-black dark:hover:text-white"
-                  >
-                    {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Database ID Input */}
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                  Database ID (32 characters)
-                </label>
-                <input
-                  id="input-notion-db-id"
-                  type="text"
-                  placeholder="e.g. 1a2b3c4d5e6f..."
-                  value={dbId}
-                  onChange={(e) => setDbId(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-xs text-black outline-none dark:border-neutral-800 dark:bg-[#2C2C2E] dark:text-white font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Test Result Feedback */}
-            {testResult && (
-              <div
-                className={`flex items-start gap-2 rounded-xl p-3 text-xs ${
-                  testResult.success
-                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                    : 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300'
-                }`}
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="relative w-full max-w-sm rounded-[36px] bg-[#F2F2F7] dark:bg-[#121214] p-5 shadow-2xl border border-white/40 dark:border-white/10 max-h-[90vh] flex flex-col overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-neutral-200/60 dark:border-neutral-800 shrink-0">
+            <h2 className="text-[17px] font-bold text-neutral-900 dark:text-white">Settings</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveAll}
+                className="text-[14px] font-bold text-[#007AFF] hover:opacity-80 transition-opacity"
               >
-                {testResult.success ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                )}
-                <span>{testResult.message}</span>
+                Save
+              </button>
+              <button
+                onClick={onClose}
+                className="p-1 rounded-full bg-neutral-200/80 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-1 mt-3 p-1 rounded-full bg-neutral-200/70 dark:bg-neutral-800/80 shrink-0">
+            <button
+              onClick={() => setActiveTab('sync')}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                activeTab === 'sync'
+                  ? 'bg-white text-black shadow-xs dark:bg-neutral-700 dark:text-white'
+                  : 'text-neutral-500 hover:text-black dark:text-neutral-400'
+              }`}
+            >
+              Sync & Cloud
+            </button>
+            <button
+              onClick={() => setActiveTab('preferences')}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                activeTab === 'preferences'
+                  ? 'bg-white text-black shadow-xs dark:bg-neutral-700 dark:text-white'
+                  : 'text-neutral-500 hover:text-black dark:text-neutral-400'
+              }`}
+            >
+              Preferences
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                activeTab === 'categories'
+                  ? 'bg-white text-black shadow-xs dark:bg-neutral-700 dark:text-white'
+                  : 'text-neutral-500 hover:text-black dark:text-neutral-400'
+              }`}
+            >
+              Categories
+            </button>
+          </div>
+
+          {/* Tab Content (Scrollable) */}
+          <div className="flex-1 overflow-y-auto no-scrollbar py-3 space-y-4">
+            {activeTab === 'sync' && (
+              <div className="space-y-4">
+                {/* Sync Status Banner */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-3.5 shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                      <span className="text-xs font-semibold text-neutral-900 dark:text-white">
+                        {isOnline ? 'Connected to Network' : 'Working Offline'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={onTriggerSync}
+                      disabled={isSyncing || !isOnline}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#007AFF] text-white text-xs font-semibold disabled:opacity-40"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                      <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-1.5">
+                    {pendingSyncCount === 0
+                      ? 'All expenses are synchronized with your personal cloud.'
+                      : `${pendingSyncCount} expense(s) pending sync in local offline queue.`}
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                    <span className="text-[12px] font-medium text-neutral-700 dark:text-neutral-300">
+                      Auto-sync when online
+                    </span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={autoSync}
+                        onChange={(e) => setAutoSync(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-8 h-4.5 bg-neutral-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[#007AFF]" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Notion Integration Box */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-serif font-black text-sm">
+                        N
+                      </div>
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white">Notion Sync</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isNotionEnabled}
+                        onChange={(e) => setIsNotionEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#007AFF]" />
+                    </label>
+                  </div>
+
+                  {isNotionEnabled && (
+                    <div className="space-y-2 pt-1">
+                      <div>
+                        <label className="text-[11px] font-semibold text-neutral-400">Integration Token</label>
+                        <div className="relative mt-0.5">
+                          <input
+                            type={showNotionToken ? 'text' : 'password'}
+                            placeholder="secret_..."
+                            value={notionToken}
+                            onChange={(e) => setNotionToken(e.target.value)}
+                            className="w-full text-xs p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white pr-8 outline-hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNotionToken(!showNotionToken)}
+                            className="absolute right-2.5 top-2.5 text-neutral-400"
+                          >
+                            {showNotionToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-neutral-400">Database ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 32-character Notion Database ID"
+                          value={notionDbId}
+                          onChange={(e) => setNotionDbId(e.target.value)}
+                          className="w-full text-xs p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-hidden mt-0.5"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleTestNotion}
+                        disabled={isTestingNotion || !notionToken || !notionDbId}
+                        className="w-full py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 text-xs font-semibold text-neutral-800 dark:text-neutral-200 transition-colors disabled:opacity-50"
+                      >
+                        {isTestingNotion ? 'Testing Connection...' : 'Test Notion Connection'}
+                      </button>
+
+                      {notionTestResult && (
+                        <div className={`p-2 rounded-xl text-xs flex items-center gap-1.5 ${notionTestResult.success ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'}`}>
+                          {notionTestResult.success ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                          <span>{notionTestResult.message}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Google Sheets Integration Box (Zero Developer Cost, User-Owned) */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                        <Table className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-neutral-900 dark:text-white">Google Sheets Sync</span>
+                        <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">100% Free &amp; Private</span>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isGoogleEnabled}
+                        onChange={(e) => setIsGoogleEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600" />
+                    </label>
+                  </div>
+
+                  {isGoogleEnabled && (
+                    <div className="space-y-2 pt-1">
+                      <div>
+                        <label className="text-[11px] font-semibold text-neutral-400">Google Apps Script Web App URL</label>
+                        <input
+                          type="url"
+                          placeholder="https://script.google.com/macros/s/.../exec"
+                          value={googleWebhookUrl}
+                          onChange={(e) => setGoogleWebhookUrl(e.target.value)}
+                          className="w-full text-xs p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-hidden mt-0.5"
+                        />
+                      </div>
+
+                      {/* 1-Click Copy Script Button */}
+                      <button
+                        type="button"
+                        onClick={handleCopyScript}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200/50 hover:bg-emerald-100 transition-colors"
+                      >
+                        {copiedScript ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedScript ? 'Apps Script Copied to Clipboard!' : 'Copy 1-Click Google Apps Script'}</span>
+                      </button>
+
+                      <p className="text-[10px] text-neutral-400 leading-tight">
+                        Instructions: Open any Google Sheet &rarr; Extensions &rarr; Apps Script &rarr; paste the code &rarr; Deploy as Web App (Access: Anyone).
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={handleTestGoogle}
+                        disabled={isTestingGoogle || !googleWebhookUrl}
+                        className="w-full py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 text-xs font-semibold text-neutral-800 dark:text-neutral-200 transition-colors disabled:opacity-50"
+                      >
+                        {isTestingGoogle ? 'Testing...' : 'Test Google Sheets Connection'}
+                      </button>
+
+                      {googleTestResult && (
+                        <div className={`p-2 rounded-xl text-xs flex items-center gap-1.5 ${googleTestResult.success ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'}`}>
+                          {googleTestResult.success ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                          <span>{googleTestResult.message}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Action Buttons: Test Connection & Sync Now */}
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                id="btn-test-notion-connection"
-                type="button"
-                onClick={handleTestConnection}
-                disabled={isTesting || !token.trim()}
-                className="flex-1 rounded-xl bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition-colors"
-              >
-                {isTesting ? 'Testing...' : 'Test Connection'}
-              </button>
-
-              <button
-                id="btn-sync-now"
-                type="button"
-                onClick={async () => {
-                  handleSaveNotion();
-                  await onTriggerSync();
-                }}
-                disabled={isSyncing || !token.trim() || !dbId.trim()}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 px-4 py-2.5 text-xs font-semibold text-black hover:bg-neutral-200 disabled:opacity-50 dark:border-neutral-700 dark:text-white dark:hover:bg-[#2C2C2E] transition-colors"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>Sync Now</span>
-              </button>
-            </div>
-          </div>
-
-          {/* SECTION 2: Appearance & Theme */}
-          <div className="rounded-2xl bg-[#F5F5F5] p-5 dark:bg-[#1C1C1E] space-y-3">
-            <h3 className="text-sm font-semibold text-black dark:text-white">Theme</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'system', label: 'System', icon: Laptop },
-                { id: 'light', label: 'Light', icon: Sun },
-                { id: 'dark', label: 'Dark', icon: Moon },
-              ].map(({ id, label, icon: Icon }) => {
-                const isSelected = theme === id;
-                return (
-                  <button
-                    key={id}
-                    id={`btn-theme-${id}`}
-                    type="button"
-                    onClick={() => handleThemeChange(id as 'system' | 'light' | 'dark')}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition-all ${
-                      isSelected
-                        ? 'bg-black text-white dark:bg-white dark:text-black shadow-xs'
-                        : 'border border-neutral-300 text-neutral-600 hover:border-black dark:border-neutral-700 dark:text-neutral-300'
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span>{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* SECTION 3: Manage Categories */}
-          <div className="rounded-2xl bg-[#F5F5F5] p-5 dark:bg-[#1C1C1E] space-y-3">
-            <h3 className="text-sm font-semibold text-black dark:text-white">
-              Manage Categories ({categories.length})
-            </h3>
-            <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-              {categories.map((cat) => (
-                <div
-                  key={cat.id}
-                  className="flex items-center justify-between rounded-xl bg-white px-3.5 py-2 dark:bg-[#2C2C2E]"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{cat.emoji}</span>
-                    <span className="text-xs font-medium text-black dark:text-white">{cat.name}</span>
+            {activeTab === 'preferences' && (
+              <div className="space-y-3">
+                {/* Currency Symbol Picker */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white block mb-2">
+                    Currency Symbol
+                  </span>
+                  <div className="grid grid-cols-5 gap-2">
+                    {['$', '₹', '€', '£', '¥'].map((cur) => (
+                      <button
+                        key={cur}
+                        onClick={() => setCurrency(cur)}
+                        className={`py-2 text-sm font-bold rounded-xl transition-all ${
+                          currency === cur
+                            ? 'bg-[#007AFF] text-white shadow-xs'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {cur}
+                      </button>
+                    ))}
                   </div>
-                  {!cat.isDefault && (
-                    <button
-                      id={`btn-delete-cat-${cat.id}`}
-                      type="button"
-                      onClick={() => onDeleteCategory(cat.id)}
-                      className="p-1 text-neutral-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
                 </div>
-              ))}
-            </div>
 
-            {/* Add Category Form */}
-            <form onSubmit={handleCreateCategory} className="flex gap-2 pt-1">
-              <input
-                type="text"
-                value={newCatEmoji}
-                onChange={(e) => setNewCatEmoji(e.target.value)}
-                placeholder="🏷️"
-                maxLength={2}
-                className="w-12 text-center rounded-xl border border-neutral-200 bg-white py-2 text-sm outline-none dark:border-neutral-800 dark:bg-[#2C2C2E] dark:text-white"
-              />
-              <input
-                type="text"
-                placeholder="New Category Name"
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                className="flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none dark:border-neutral-800 dark:bg-[#2C2C2E] dark:text-white"
-              />
-              <button
-                type="submit"
-                id="btn-add-category"
-                disabled={!newCatName.trim()}
-                className="flex items-center justify-center rounded-xl bg-black px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-40 dark:bg-white dark:text-black"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
-
-          {/* SECTION 4: Manage Payment Methods */}
-          <div className="rounded-2xl bg-[#F5F5F5] p-5 dark:bg-[#1C1C1E] space-y-3">
-            <h3 className="text-sm font-semibold text-black dark:text-white">
-              Payment Methods ({paymentMethods.length})
-            </h3>
-            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
-              {paymentMethods.map((pm) => (
-                <div
-                  key={pm.id}
-                  className="flex items-center justify-between rounded-xl bg-white px-3.5 py-2 dark:bg-[#2C2C2E]"
-                >
-                  <span className="text-xs font-medium text-black dark:text-white">{pm.name}</span>
-                  {!pm.isDefault && (
-                    <button
-                      id={`btn-delete-pm-${pm.id}`}
-                      type="button"
-                      onClick={() => onDeletePaymentMethod(pm.id)}
-                      className="p-1 text-neutral-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+                {/* Theme Selector */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white block mb-2">
+                    Theme Appearance
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'light', label: 'Light', icon: Sun },
+                      { id: 'dark', label: 'Dark', icon: Moon },
+                      { id: 'system', label: 'System', icon: Laptop },
+                    ].map((t) => {
+                      const Icon = t.icon;
+                      const isSelected = theme === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          onClick={() => setTheme(t.id as any)}
+                          className={`flex flex-col items-center py-2.5 rounded-xl transition-all ${
+                            isSelected
+                              ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mb-1" />
+                          <span className="text-xs">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Add Payment Method Form */}
-            <form onSubmit={handleCreatePaymentMethod} className="flex gap-2 pt-1">
-              <input
-                type="text"
-                placeholder="e.g. Apple Pay, Cash, Revolut"
-                value={newPmName}
-                onChange={(e) => setNewPmName(e.target.value)}
-                className="flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none dark:border-neutral-800 dark:bg-[#2C2C2E] dark:text-white"
-              />
-              <button
-                type="submit"
-                id="btn-add-payment-method"
-                disabled={!newPmName.trim()}
-                className="flex items-center justify-center rounded-xl bg-black px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-40 dark:bg-white dark:text-black"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </form>
+                {/* Data Backup & Reset */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05] space-y-2">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white block">
+                    Data Management
+                  </span>
+                  <button
+                    onClick={onExportCSV}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 text-xs font-semibold text-neutral-800 dark:text-neutral-200 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export Expenses to CSV</span>
+                  </button>
+                  <button
+                    onClick={onResetSampleData}
+                    className="w-full py-2 rounded-xl text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300 transition-colors"
+                  >
+                    Load Official SyncSpend Sample Data
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'categories' && (
+              <div className="space-y-4">
+                {/* Categories Manager */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white block mb-2">
+                    Categories ({categories.length})
+                  </span>
+                  <div className="max-h-36 overflow-y-auto space-y-1 no-scrollbar">
+                    {categories.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-800/60">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-md bg-[#EFEFF4] dark:bg-[#2C2C2E] flex items-center justify-center text-neutral-800 dark:text-neutral-200 shrink-0">
+                            <CategoryIcon iconName={c.iconName} className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">{c.name}</span>
+                        </div>
+                        {!c.isDefault && (
+                          <button onClick={() => onDeleteCategory(c.id)} className="text-neutral-400 hover:text-red-500">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Category */}
+                  <div className="flex gap-1.5 mt-3">
+                    <select
+                      value={newCatIcon}
+                      onChange={(e) => setNewCatIcon(e.target.value)}
+                      className="w-28 text-xs p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 outline-hidden cursor-pointer"
+                    >
+                      {AVAILABLE_CATEGORY_ICONS.map((icon) => (
+                        <option key={icon.id} value={icon.id}>
+                          {icon.label}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Category name..."
+                      value={newCatName}
+                      onChange={(e) => setNewCatName(e.target.value)}
+                      className="flex-1 text-xs p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newCatName.trim()) {
+                          onAddCategory(newCatName.trim(), newCatIcon);
+                          setNewCatName('');
+                        }
+                      }}
+                      disabled={!newCatName.trim()}
+                      className="px-3 py-2 rounded-xl bg-[#007AFF] text-white text-xs font-semibold disabled:opacity-40"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Payment Methods Manager */}
+                <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
+                  <span className="text-xs font-semibold text-neutral-900 dark:text-white block mb-2">
+                    Payment Methods ({paymentMethods.length})
+                  </span>
+                  <div className="max-h-28 overflow-y-auto space-y-1 no-scrollbar">
+                    {paymentMethods.map((pm) => (
+                      <div key={pm.id} className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 dark:bg-neutral-800/60">
+                        <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">{pm.name}</span>
+                        {!pm.isDefault && (
+                          <button onClick={() => onDeletePaymentMethod(pm.id)} className="text-neutral-400 hover:text-red-500">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-1.5 mt-3">
+                    <input
+                      type="text"
+                      placeholder="Payment method..."
+                      value={newPmName}
+                      onChange={(e) => setNewPmName(e.target.value)}
+                      className="flex-1 text-xs p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white outline-hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newPmName.trim()) {
+                          onAddPaymentMethod(newPmName.trim());
+                          setNewPmName('');
+                        }
+                      }}
+                      disabled={!newPmName.trim()}
+                      className="px-3 py-2 rounded-xl bg-[#007AFF] text-white text-xs font-semibold disabled:opacity-40"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* SECTION 5: Data Export & Privacy */}
-          <div className="rounded-2xl bg-[#F5F5F5] p-5 dark:bg-[#1C1C1E] space-y-3">
-            <h3 className="text-sm font-semibold text-black dark:text-white">Data & Privacy</h3>
-            <button
-              id="btn-export-csv-settings"
-              onClick={onExportCSV}
-              type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-xs font-semibold text-black hover:bg-neutral-100 dark:bg-[#2C2C2E] dark:text-white dark:hover:bg-[#3A3A3C] transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              <span>Export All Data to CSV</span>
-            </button>
-
-            <div className="flex items-start gap-2 pt-2 text-xs text-neutral-500 dark:text-neutral-400">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              <span>
-                100% Offline-First. No advertising, no trackers, and no developer server. Your expenses remain exclusively on your device and your connected Notion workspace.
-              </span>
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };

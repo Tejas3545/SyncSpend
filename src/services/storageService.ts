@@ -2,10 +2,10 @@ import { Category, PaymentMethod, Expense, Settings } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS, getSampleExpenses } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  EXPENSES: 'spendsync_expenses_v1',
-  CATEGORIES: 'spendsync_categories_v1',
-  PAYMENT_METHODS: 'spendsync_payment_methods_v1',
-  SETTINGS: 'spendsync_settings_v1',
+  EXPENSES: 'syncspend_expenses_v2',
+  CATEGORIES: 'syncspend_categories_v2',
+  PAYMENT_METHODS: 'syncspend_payment_methods_v2',
+  SETTINGS: 'syncspend_settings_v2',
 };
 
 export const StorageService = {
@@ -38,6 +38,9 @@ export const StorageService = {
       ...expense,
       id: 'exp-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       createdAt: Date.now(),
+      isSynced: expense.isSynced ?? false,
+      isNotionSynced: expense.isNotionSynced ?? false,
+      isGoogleSynced: expense.isGoogleSynced ?? false,
     };
     expenses.unshift(newExpense);
     this.saveExpenses(expenses);
@@ -62,6 +65,21 @@ export const StorageService = {
     return expenses[index];
   },
 
+  clearAllExpenses(): void {
+    this.saveExpenses([]);
+  },
+
+  resetToSampleData(): Expense[] {
+    const initial = getSampleExpenses();
+    this.saveExpenses(initial);
+    return initial;
+  },
+
+  getUnsyncedExpenses(): Expense[] {
+    const expenses = this.getExpenses();
+    return expenses.filter((e) => !e.isSynced || !e.isNotionSynced || !e.isGoogleSynced);
+  },
+
   getCategories(): Category[] {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
@@ -84,12 +102,12 @@ export const StorageService = {
     }
   },
 
-  addCategory(name: string, emoji: string): Category {
+  addCategory(name: string, iconName: string = 'tag'): Category {
     const categories = this.getCategories();
     const newCategory: Category = {
       id: 'cat-' + Date.now(),
       name: name.trim(),
-      emoji: emoji.trim() || '🏷️',
+      iconName: iconName || 'tag',
       isDefault: false,
     };
     categories.push(newCategory);
@@ -148,29 +166,30 @@ export const StorageService = {
   },
 
   getSettings(): Settings {
+    const defaultSettings: Settings = {
+      notionToken: '',
+      notionDatabaseId: '',
+      isNotionEnabled: false,
+      googleSheetsWebhookUrl: '',
+      isGoogleSheetsEnabled: false,
+      theme: 'system',
+      currencySymbol: '$', // Matches iOS app screenshot
+      accountName: 'Personal',
+      accounts: ['Personal', 'Business', 'Joint'],
+      fitToFrame: true, // Fit-to-frame mobile enclosure by default
+      autoSyncOnOnline: true,
+    };
+
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (!data) {
-        const defaultSettings: Settings = {
-          notionToken: '',
-          notionDatabaseId: '',
-          theme: 'system',
-          currencySymbol: '₹',
-          accountName: 'Personal',
-        };
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(defaultSettings));
         return defaultSettings;
       }
-      return JSON.parse(data);
+      return { ...defaultSettings, ...JSON.parse(data) };
     } catch (e) {
       console.error('Error reading settings from storage', e);
-      return {
-        notionToken: '',
-        notionDatabaseId: '',
-        theme: 'system',
-        currencySymbol: '₹',
-        accountName: 'Personal',
-      };
+      return defaultSettings;
     }
   },
 
@@ -182,8 +201,16 @@ export const StorageService = {
     }
   },
 
-  // Smart suggestions query: selects distinct expense names matching prefix
-  getSuggestions(prefix: string): string[] {
+  // Smart suggestions: query past expenses to return complete fill-in objects (matching Screenshot 5)
+  getSmartSuggestion(query: string): Expense | null {
+    if (!query.trim()) return null;
+    const clean = query.trim().toLowerCase();
+    const expenses = this.getExpenses();
+    const match = expenses.find((e) => e.name.toLowerCase().startsWith(clean) || e.name.toLowerCase().includes(clean));
+    return match || null;
+  },
+
+  getRecentNames(prefix: string): string[] {
     const expenses = this.getExpenses();
     const cleanPrefix = prefix.trim().toLowerCase();
     const uniqueNames = new Set<string>();
@@ -198,7 +225,6 @@ export const StorageService = {
     return Array.from(uniqueNames);
   },
 
-  // Export to CSV
   exportToCSV(): string {
     const expenses = this.getExpenses();
     const categories = this.getCategories();
@@ -206,7 +232,7 @@ export const StorageService = {
     const methods = this.getPaymentMethods();
     const methodMap = new Map(methods.map((m) => [m.id, m.name]));
 
-    const headers = ['ID', 'Date', 'Expense Name', 'Amount (INR)', 'Category', 'Payment Method', 'Synced'];
+    const headers = ['ID', 'Date', 'Expense Name', 'Amount', 'Category', 'Payment Method', 'Account', 'Synced'];
     const rows = expenses.map((e) => [
       e.id,
       e.date,
@@ -214,6 +240,7 @@ export const StorageService = {
       e.amount.toFixed(2),
       `"${(categoryMap.get(e.categoryId) || 'Other').replace(/"/g, '""')}"`,
       `"${(e.paymentMethodId ? methodMap.get(e.paymentMethodId) || 'None' : 'None').replace(/"/g, '""')}"`,
+      `"${(e.account || 'Personal').replace(/"/g, '""')}"`,
       e.isSynced ? 'Yes' : 'No',
     ]);
 

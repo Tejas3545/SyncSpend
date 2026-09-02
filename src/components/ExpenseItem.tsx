@@ -1,5 +1,6 @@
 import React from 'react';
 import { Expense, Category, PaymentMethod } from '../types';
+import { CategoryIcon } from './CategoryIcon';
 import { Trash2 } from 'lucide-react';
 
 interface ExpenseItemProps {
@@ -8,70 +9,71 @@ interface ExpenseItemProps {
   paymentMethod?: PaymentMethod;
   currencySymbol?: string;
   onDelete?: (id: string) => void;
+  onClick?: () => void;
 }
 
 export const ExpenseItem: React.FC<ExpenseItemProps> = ({
   expense,
   category,
-  paymentMethod,
-  currencySymbol = '₹',
+  currencySymbol = '$',
   onDelete,
+  onClick,
 }) => {
-  const emoji = category?.emoji || '📌';
-  const categoryName = category?.name || 'General';
+  // Format date display: e.g. "10 Mar 2026"
+  const formatDateDisplay = (dateStr: string) => {
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const iconName = category?.iconName || expense.name.toLowerCase();
 
   return (
     <div
-      id={`expense-item-${expense.id}`}
-      className="group relative flex items-center justify-between rounded-2xl bg-[#F5F5F5] p-3.5 transition-colors hover:bg-neutral-200/70 dark:bg-[#1C1C1E] dark:hover:bg-[#2C2C2E]"
+      id={`expense-row-${expense.id}`}
+      onClick={onClick}
+      className="group relative flex items-center justify-between py-2.5 px-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
     >
-      {/* Left: Emoji box + Name + Category info */}
+      {/* Left Column: Authentic iOS Squircle with clean SVG Icon + Name + Date */}
       <div className="flex items-center gap-3 min-w-0 pr-2">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs dark:bg-[#2C2C2E]">
-          <span className="text-xl leading-none">{emoji}</span>
+        <div className="w-9 h-9 rounded-[10px] bg-[#EFEFF4] dark:bg-[#2C2C2E] flex items-center justify-center text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
+          <CategoryIcon iconName={iconName} className="w-4 h-4" />
         </div>
+
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-medium text-black dark:text-white">
+          <p className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-tight truncate leading-tight">
             {expense.name}
           </p>
-          <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-            <span>{categoryName}</span>
-            {paymentMethod && (
-              <>
-                <span>•</span>
-                <span>{paymentMethod.name}</span>
-              </>
-            )}
-          </div>
+          <p className="text-[12px] text-[#8E8E93] dark:text-[#98989D] leading-none mt-1">
+            {formatDateDisplay(expense.date)}
+          </p>
         </div>
       </div>
 
-      {/* Right: Amount + Sync indicator + Optional delete */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        <div className="text-right">
-          <p className="text-[16px] font-semibold text-black dark:text-white">
-            {currencySymbol}{expense.amount.toFixed(2)}
-          </p>
-          <div className="flex items-center justify-end gap-1 text-[11px] text-neutral-500 dark:text-neutral-400">
-            {!expense.isSynced ? (
-              <span title="Pending cloud sync" className="text-xs">⏳</span>
-            ) : (
-              <span title="Synced to Notion" className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">✓</span>
-            )}
-          </div>
-        </div>
+      {/* Right Column: Amount */}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-tight">
+          {currencySymbol}{expense.amount.toFixed(2)}
+        </span>
 
         {onDelete && (
           <button
-            id={`btn-delete-expense-${expense.id}`}
+            id={`btn-del-${expense.id}`}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(expense.id);
             }}
-            title="Delete expense"
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 focus:opacity-100"
+            title="Delete Expense"
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 text-neutral-400 hover:text-red-500 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 ml-1"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

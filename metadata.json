@@ -1,6 +1,6 @@
 {
-  "name": "SpendSync",
-  "description": "Minimal, monochrome offline-first expense tracker with Notion sync, smart suggestions, and spending analytics.",
+  "name": "SyncSpend",
+  "description": "Fast, minimalist liquid glass expense tracker for Android. Real-time offline-first sync with Notion and Google Sheets, smart suggestions, home widgets, and shortcut automation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
