@@ -33,16 +33,39 @@ A 100% free, native Android expense tracking application with Notion sync. No su
 - JDK 17
 - Minimum SDK: Android 8.0 (API 26)
 
-## Building the Project
+## Building the Android APK
 
-1. Clone the repository
-2. Open the project in Android Studio
-3. Sync Gradle files
-4. Build and run on an Android device or emulator
+### Option 1: In Android Studio (Recommended)
+1. Open Android Studio
+2. Click **Open** and select the `android` folder in this repository: `SyncSpend/android`
+3. Wait for Gradle sync to complete
+4. Click **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+5. Find your generated APK in `android/app/build/outputs/apk/debug/app-debug.apk`
 
-```bash
+### Option 2: Command Line (PowerShell / Terminal in VS Code)
+Ensure you have **Java 17 or 21** installed and `JAVA_HOME` set in your environment:
+
+```powershell
+# From the SyncSpend root directory, navigate into the android project:
+cd android
 ./gradlew assembleDebug
 ```
+Or in Windows Command Prompt:
+```cmd
+cd android
+gradlew assembleDebug
+```
+
+The APK will be generated at:
+`android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Syncing latest Web changes to Android
+Whenever you modify UI code:
+```bash
+npm run build:android
+```
+This automatically compiles TypeScript/Vite and syncs the assets to `android/app/src/main/assets/public/`.
+
 
 ## Google Sheets + offline sync
 
