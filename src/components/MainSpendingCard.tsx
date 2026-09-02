@@ -38,11 +38,11 @@ export const MainSpendingCard: React.FC<MainSpendingCardProps> = ({
       {/* Top Header: Total Spending & Period Filter (Screenshot 1) */}
       <div className="flex items-start justify-between">
         <div>
-          <span className="text-[13px] font-medium text-[#8E8E93] dark:text-[#98989D] tracking-tight">
+          <span className="text-[13px] font-medium text-[#8E8E93] dark:text-[#98989D] tracking-[-0.01em]">
             Total Spending
           </span>
           <div className="mt-0.5">
-            <h1 className="text-[36px] leading-tight font-bold tracking-tight text-neutral-900 dark:text-white">
+            <h1 className="text-[34px] leading-tight font-bold tracking-[-0.028em] text-neutral-900 dark:text-white tabular-nums">
               {currencySymbol}
               {amount.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
@@ -70,7 +70,7 @@ export const MainSpendingCard: React.FC<MainSpendingCardProps> = ({
                   onPeriodChange(p);
                   setSelectedDay(null);
                 }}
-                className={`px-2.5 py-1 text-[11px] font-semibold transition-all rounded-full ${
+                className={`px-3 py-1 text-[12px] font-semibold transition-all rounded-full tracking-[-0.015em] ${
                   isActive
                     ? 'bg-white text-neutral-900 shadow-2xs dark:bg-neutral-800 dark:text-white'
                     : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -90,14 +90,14 @@ export const MainSpendingCard: React.FC<MainSpendingCardProps> = ({
           {guideLines.map((level, i) => (
             <div key={i} className="flex items-center w-full">
               <div className="flex-1 h-[1px] bg-black/[0.04] dark:bg-white/[0.06]" />
-              <span className="pl-2 text-[10px] font-mono text-[#8E8E93] dark:text-[#98989D] select-none w-5 text-right">
+              <span className="pl-2 text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500 select-none w-5 text-right font-normal">
                 {level}
               </span>
             </div>
           ))}
           <div className="flex items-center w-full">
             <div className="flex-1 h-[1px] bg-black/[0.06] dark:bg-white/[0.09]" />
-            <span className="pl-2 text-[10px] font-mono text-[#8E8E93] dark:text-[#98989D] select-none w-5 text-right">
+            <span className="pl-2 text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500 select-none w-5 text-right font-normal">
               0
             </span>
           </div>
@@ -124,7 +124,7 @@ export const MainSpendingCard: React.FC<MainSpendingCardProps> = ({
                       initial={{ opacity: 0, y: 6, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.9 }}
-                      className="absolute -top-7 z-30 whitespace-nowrap rounded-full bg-neutral-900 dark:bg-white px-2.5 py-0.5 text-[11px] font-bold text-white dark:text-black shadow-lg"
+                      className="absolute -top-7 z-30 whitespace-nowrap rounded-full bg-neutral-900 dark:bg-white px-2.5 py-0.5 text-[11px] font-medium text-white dark:text-black shadow-lg"
                     >
                       {currencySymbol}{day.amount.toFixed(2)}
                     </motion.div>
@@ -149,11 +149,11 @@ export const MainSpendingCard: React.FC<MainSpendingCardProps> = ({
 
                 {/* Day Label below bar */}
                 <span
-                  className={`mt-2 text-[11px] font-medium transition-colors select-none ${
+                  className={`mt-2 text-[11px] font-normal transition-colors select-none tracking-normal ${
                     isSelected
-                      ? 'text-[#007AFF] font-bold'
+                      ? 'text-[#007AFF] font-medium'
                       : hasSpending
-                      ? 'text-neutral-800 dark:text-neutral-200'
+                      ? 'text-neutral-700 dark:text-neutral-300'
                       : 'text-[#8E8E93] dark:text-[#98989D]'
                   }`}
                 >

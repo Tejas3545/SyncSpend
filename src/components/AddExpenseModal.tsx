@@ -135,11 +135,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           <div className="mt-4 space-y-3">
             {/* Amount input block */}
             <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] p-4 text-center shadow-xs border border-black/[0.04] dark:border-white/[0.05]">
-              <span className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-[-0.005em]">
                 Amount
               </span>
               <div className="flex items-center justify-center gap-1 mt-1">
-                <span className="text-2xl font-bold text-neutral-400">{currencySymbol}</span>
+                <span className="text-2xl font-bold text-neutral-400 tracking-[-0.02em]">{currencySymbol}</span>
                 <input
                   type="number"
                   step="0.01"
@@ -147,7 +147,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   placeholder="0.00"
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
-                  className="w-44 text-3xl font-extrabold text-neutral-900 dark:text-white text-center bg-transparent border-none outline-hidden tracking-tight"
+                  className="w-44 text-3xl font-bold text-neutral-900 dark:text-white text-center bg-transparent border-none outline-hidden tracking-[-0.025em] tabular-nums"
                 />
               </div>
             </div>
@@ -232,21 +232,51 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </div>
               </div>
 
-              {/* Date Row (Matching Screenshot 5 pill) */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-[14px] font-medium text-neutral-800 dark:text-neutral-200">
-                  Date
-                </span>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                  />
-                  <div className="px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[12px] font-semibold text-neutral-800 dark:text-neutral-200 border border-black/[0.04]">
-                    {formatDatePill(date)}
+              {/* Date Row with Quick Past Date Selectors (Screenshot 5 pill + quick shortcuts) */}
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] font-medium text-neutral-800 dark:text-neutral-200">
+                    Date
+                  </span>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+                    />
+                    <div className="px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[12px] font-semibold text-neutral-800 dark:text-neutral-200 border border-black/[0.04] dark:border-white/[0.08] hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      {formatDatePill(date)}
+                    </div>
                   </div>
+                </div>
+
+                {/* Quick Date Shortcuts for Forgot-to-Add Cases */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  {[
+                    { label: 'Today', daysAgo: 0 },
+                    { label: 'Yesterday', daysAgo: 1 },
+                    { label: '2 days ago', daysAgo: 2 },
+                  ].map((btn) => {
+                    const targetD = new Date();
+                    targetD.setDate(targetD.getDate() - btn.daysAgo);
+                    const targetStr = toLocalDateString(targetD);
+                    const isSelected = date === targetStr;
+                    return (
+                      <button
+                        key={btn.label}
+                        type="button"
+                        onClick={() => setDate(targetStr)}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${
+                          isSelected
+                            ? 'bg-[#007AFF] text-white shadow-2xs font-semibold'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        {btn.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

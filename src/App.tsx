@@ -45,22 +45,21 @@ export const App: React.FC = () => {
     setIsOnline(SyncManager.isOnline());
   }, []);
 
-  // Theme effect
+  // Theme effect and active dark state
+  const isDarkMode = useMemo(() => {
+    if (settings.theme === 'dark') return true;
+    if (settings.theme === 'light') return false;
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }, [settings.theme]);
+
   useEffect(() => {
     const root = document.documentElement;
-    if (settings.theme === 'dark') {
+    if (isDarkMode) {
       root.classList.add('dark');
-    } else if (settings.theme === 'light') {
-      root.classList.remove('dark');
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+      root.classList.remove('dark');
     }
-  }, [settings.theme]);
+  }, [isDarkMode]);
 
   // Trigger sync in background
   const triggerSync = useCallback(async () => {
@@ -184,42 +183,53 @@ export const App: React.FC = () => {
 
   // Grouped expenses for main feed (Matching Screenshot 1: "Latest", "Monday", etc.)
   const groupedSections = useMemo(() => {
-    const groups: { [key: string]: Expense[] } = {};
-    const todayStr = toLocalDateString(new Date());
+    // 1. Group strictly by exact date key
+    const dateMap = new Map<string, Expense[]>();
+    for (const exp of filteredExpenses) {
+      if (!dateMap.has(exp.date)) {
+        dateMap.set(exp.date, []);
+      }
+      dateMap.get(exp.date)!.push(exp);
+    }
 
+    // 2. Sort dates in descending chronological order (newest date first)
+    const sortedDates = Array.from(dateMap.keys()).sort((a, b) => b.localeCompare(a));
+
+    const todayStr = toLocalDateString(new Date());
     const yesterdayDate = new Date();
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
     const yesterdayStr = toLocalDateString(yesterdayDate);
 
-    for (const exp of filteredExpenses) {
-      let groupKey = exp.date;
-      if (exp.date === todayStr) {
-        groupKey = 'Latest';
-      } else if (exp.date === yesterdayStr) {
-        groupKey = yesterdayDate.toLocaleDateString('en-US', { weekday: 'long' });
+    return sortedDates.map((dateKey) => {
+      const items = dateMap.get(dateKey)!;
+      // Sort within the day: newest creation time first
+      items.sort((a, b) => b.createdAt - a.createdAt);
+
+      let groupLabel = dateKey;
+      if (dateKey === todayStr) {
+        groupLabel = 'Latest';
+      } else if (dateKey === yesterdayStr) {
+        groupLabel = yesterdayDate.toLocaleDateString('en-US', { weekday: 'long' });
       } else {
-        const parts = exp.date.split('-');
+        const parts = dateKey.split('-');
         if (parts.length === 3) {
           const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-          groupKey = d.toLocaleDateString('en-US', { weekday: 'long' });
+          const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+          const dayMonth = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          groupLabel = `${weekday}, ${dayMonth}`;
         }
       }
 
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(exp);
-    }
-
-    return Object.entries(groups);
+      return [groupLabel, items] as [string, Expense[]];
+    });
   }, [filteredExpenses]);
 
   // Pending unsynced count
   const pendingSyncCount = useMemo(() => {
     return expenses.filter(
       (e) =>
-        (settings.isNotionEnabled && !e.isNotionSynced) ||
-        (settings.isGoogleSheetsEnabled && !e.isGoogleSynced)
+        ((settings.isNotionEnabled || settings.isNotionConnected) && !e.isNotionSynced) ||
+        ((settings.isGoogleSheetsEnabled || settings.isGoogleConnected) && !e.isGoogleSynced)
     ).length;
   }, [expenses, settings]);
 
@@ -229,7 +239,13 @@ export const App: React.FC = () => {
     setExpenses(StorageService.getExpenses());
 
     // Auto sync immediately if online
-    if (isOnline && (settings.isNotionEnabled || settings.isGoogleSheetsEnabled)) {
+    const isSyncActive =
+      settings.isNotionEnabled ||
+      settings.isNotionConnected ||
+      settings.isGoogleSheetsEnabled ||
+      settings.isGoogleConnected;
+
+    if (isOnline && isSyncActive) {
       await SyncManager.syncSingleExpense(newExpense, settings);
       setExpenses(StorageService.getExpenses());
     }
@@ -312,6 +328,7 @@ export const App: React.FC = () => {
       pendingSyncCount={pendingSyncCount}
       onQuickAddShortcut={() => setIsShortcutsOpen(true)}
       onOpenWidgets={() => setIsWidgetsOpen(true)}
+      isDark={isDarkMode}
     >
       {/* Pinned Top Navigation Bar (Matching Screenshot 1) */}
       <div className="shrink-0 px-5 pt-3 pb-2 flex items-center justify-between z-30 select-none">
@@ -390,12 +407,12 @@ export const App: React.FC = () => {
           groupedSections.map(([sectionTitle, items]) => (
             <div key={sectionTitle} className="space-y-1.5">
               {/* Section Header */}
-              <span className="text-[13px] font-medium text-neutral-400 dark:text-neutral-500 pl-2">
+              <span className="text-[13px] font-semibold text-[#8E8E93] dark:text-[#98989D] pl-3 tracking-[-0.01em] select-none">
                 {sectionTitle}
               </span>
 
               {/* White Group Card */}
-              <div className="liquid-glass-card rounded-[24px] divide-y divide-neutral-100 dark:divide-neutral-800/80 p-1">
+              <div className="liquid-glass-card rounded-[24px] divide-y divide-black/[0.04] dark:divide-white/[0.06] p-1.5">
                 {items.map((exp) => (
                   <ExpenseItem
                     key={exp.id}
@@ -453,8 +470,8 @@ export const App: React.FC = () => {
         onClose={() => setIsWidgetsOpen(false)}
         summary={spendingSummary}
         currencySymbol={settings.currencySymbol || '$'}
-        isNotionConfigured={Boolean(settings.isNotionEnabled && settings.notionToken && settings.notionDatabaseId)}
-        isGoogleConfigured={Boolean(settings.isGoogleSheetsEnabled && settings.googleSheetsWebhookUrl)}
+        isNotionConfigured={Boolean((settings.isNotionEnabled ?? true) && (settings.isNotionConnected || (settings.notionToken && settings.notionDatabaseId)))}
+        isGoogleConfigured={Boolean((settings.isGoogleSheetsEnabled ?? true) && (settings.isGoogleConnected || settings.googleSheetsWebhookUrl))}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 

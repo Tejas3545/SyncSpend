@@ -1,6 +1,6 @@
 {
   "name": "SyncSpend",
-  "description": "Fast, minimalist liquid glass expense tracker for Android. Real-time offline-first sync with Notion and Google Sheets, smart suggestions, home widgets, and shortcut automation.",
+  "description": "Native Android app (Capacitor + Gradle) for SyncSpend expense tracker with offline-first sync, smart suggestions, and liquid glass styling.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

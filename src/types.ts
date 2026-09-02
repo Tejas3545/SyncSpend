@@ -38,16 +38,46 @@ export interface SpendingSummary {
   dailyBreakdown: { label: string; amount: number; dateStr: string }[];
 }
 
+export interface GoogleAccount {
+  email: string;
+  name: string;
+  avatar?: string;
+  spreadsheetName: string;
+  spreadsheetId: string;
+  connectedAt: string;
+  lastSyncedAt?: string;
+}
+
+export interface NotionAccount {
+  workspaceName: string;
+  workspaceIcon?: string;
+  userEmail?: string;
+  databaseName: string;
+  databaseId: string;
+  connectedAt: string;
+  lastSyncedAt?: string;
+}
+
 export interface Settings {
-  notionToken: string;
-  notionDatabaseId: string;
-  isNotionEnabled: boolean;
-  googleSheetsWebhookUrl: string;
-  isGoogleSheetsEnabled: boolean;
+  // Account Cloud Sync
+  isGoogleConnected: boolean;
+  googleAccount?: GoogleAccount | null;
+  isNotionConnected: boolean;
+  notionAccount?: NotionAccount | null;
+
+  // Legacy fallback support
+  isNotionEnabled?: boolean;
+  notionToken?: string;
+  notionDatabaseId?: string;
+  isGoogleSheetsEnabled?: boolean;
+  googleSheetsWebhookUrl?: string;
+
+  // App Appearance & Options
   theme: 'system' | 'light' | 'dark';
   currencySymbol: string;
   accountName: string;
   accounts: string[];
   fitToFrame: boolean;
   autoSyncOnOnline: boolean;
+  quickTapGestureEnabled?: boolean;
 }

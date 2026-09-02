@@ -50,7 +50,7 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
       <button
         id="btn-account-switcher"
         onClick={() => setIsOpen(!isOpen)}
-        className="liquid-glass inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold text-neutral-800 dark:text-neutral-100 transition-all hover:opacity-90 active:scale-95 shadow-xs"
+        className="liquid-glass inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold text-neutral-900 dark:text-neutral-100 transition-all hover:opacity-90 active:scale-95 shadow-xs tracking-[-0.015em]"
       >
         <span>{currentAccount}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -66,7 +66,7 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className="absolute left-0 top-full mt-2 w-52 z-50 rounded-2xl liquid-glass p-1.5 shadow-2xl border border-white/60 dark:border-white/10"
           >
-            <div className="px-3 py-1.5 text-[11px] font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
+            <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-[-0.005em]">
               Accounts
             </div>
 

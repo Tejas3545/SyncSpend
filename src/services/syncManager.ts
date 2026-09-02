@@ -31,12 +31,14 @@ export const SyncManager = {
     let googleRowId = expense.googleRowId;
 
     // 1. Notion Sync
-    if (settings.isNotionEnabled && settings.notionToken && settings.notionDatabaseId && !isNotionSynced) {
+    const shouldSyncNotion = settings.isNotionConnected || (settings.isNotionEnabled && settings.notionToken);
+    if (shouldSyncNotion && !isNotionSynced) {
       if (this.isOnline()) {
         const res = await NotionService.syncExpense(
           expense,
           category,
           paymentMethod,
+          settings.notionAccount,
           settings.notionToken,
           settings.notionDatabaseId
         );
@@ -50,12 +52,14 @@ export const SyncManager = {
     }
 
     // 2. Google Sheets Sync
-    if (settings.isGoogleSheetsEnabled && settings.googleSheetsWebhookUrl && !isGoogleSynced) {
+    const shouldSyncGoogle = settings.isGoogleConnected || settings.isGoogleSheetsEnabled;
+    if (shouldSyncGoogle && !isGoogleSynced) {
       if (this.isOnline()) {
         const res = await GoogleSheetsService.syncExpense(
           expense,
           category,
           paymentMethod,
+          settings.googleAccount,
           settings.googleSheetsWebhookUrl
         );
         if (res.success) {
@@ -68,8 +72,8 @@ export const SyncManager = {
     }
 
     const isFullySynced =
-      (!settings.isNotionEnabled || isNotionSynced) &&
-      (!settings.isGoogleSheetsEnabled || isGoogleSynced);
+      (!shouldSyncNotion || isNotionSynced) &&
+      (!shouldSyncGoogle || isGoogleSynced);
 
     const updatedExpense: Expense = {
       ...expense,
@@ -86,10 +90,13 @@ export const SyncManager = {
 
   async syncAllPending(settings: Settings): Promise<SyncResult> {
     const expenses = StorageService.getExpenses();
+    const shouldSyncNotion = settings.isNotionConnected || (settings.isNotionEnabled && settings.notionToken);
+    const shouldSyncGoogle = settings.isGoogleConnected || settings.isGoogleSheetsEnabled;
+
     const pending = expenses.filter(
       (e) =>
-        (settings.isNotionEnabled && !e.isNotionSynced) ||
-        (settings.isGoogleSheetsEnabled && !e.isGoogleSynced)
+        (shouldSyncNotion && !e.isNotionSynced) ||
+        (shouldSyncGoogle && !e.isGoogleSynced)
     );
 
     const result: SyncResult = {

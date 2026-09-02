@@ -42,16 +42,16 @@ export const ExpenseItem: React.FC<ExpenseItemProps> = ({
       className="group relative flex items-center justify-between py-2.5 px-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
     >
       {/* Left Column: Authentic iOS Squircle with clean SVG Icon + Name + Date */}
-      <div className="flex items-center gap-3 min-w-0 pr-2">
-        <div className="w-9 h-9 rounded-[10px] bg-[#EFEFF4] dark:bg-[#2C2C2E] flex items-center justify-center text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
-          <CategoryIcon iconName={iconName} className="w-4 h-4" />
+      <div className="flex items-center gap-3.5 min-w-0 pr-2">
+        <div className="w-10 h-10 rounded-[12px] bg-[#EFEFF4] dark:bg-[#2C2C2E] flex items-center justify-center text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
+          <CategoryIcon iconName={iconName} className="w-4.5 h-4.5" />
         </div>
 
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-tight truncate leading-tight">
+          <p className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-[-0.018em] truncate leading-tight">
             {expense.name}
           </p>
-          <p className="text-[12px] text-[#8E8E93] dark:text-[#98989D] leading-none mt-1">
+          <p className="text-[13px] font-normal text-[#8E8E93] dark:text-[#98989D] leading-tight mt-0.5 tracking-[-0.006em]">
             {formatDateDisplay(expense.date)}
           </p>
         </div>
@@ -59,7 +59,7 @@ export const ExpenseItem: React.FC<ExpenseItemProps> = ({
 
       {/* Right Column: Amount */}
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-tight">
+        <span className="text-[15px] font-semibold text-neutral-900 dark:text-white tracking-[-0.015em] tabular-nums">
           {currencySymbol}{expense.amount.toFixed(2)}
         </span>
 

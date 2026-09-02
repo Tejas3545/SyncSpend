@@ -26,6 +26,12 @@ export const StorageService = {
 
   saveExpenses(expenses: Expense[]): void {
     try {
+      // Keep expenses sorted chronologically: descending by date (YYYY-MM-DD), then by createdAt
+      expenses.sort((a, b) => {
+        const dateDiff = b.date.localeCompare(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        return b.createdAt - a.createdAt;
+      });
       localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
     } catch (e) {
       console.error('Error saving expenses to storage', e);
@@ -42,7 +48,7 @@ export const StorageService = {
       isNotionSynced: expense.isNotionSynced ?? false,
       isGoogleSynced: expense.isGoogleSynced ?? false,
     };
-    expenses.unshift(newExpense);
+    expenses.push(newExpense);
     this.saveExpenses(expenses);
     return newExpense;
   },
@@ -167,17 +173,35 @@ export const StorageService = {
 
   getSettings(): Settings {
     const defaultSettings: Settings = {
+      isGoogleConnected: true,
+      googleAccount: {
+        email: 'solankitejas569@gmail.com',
+        name: 'Tejas Solanki',
+        spreadsheetName: 'SyncSpend Expenses',
+        spreadsheetId: 'syncspend_personal_sheet',
+        connectedAt: new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString(),
+      },
+      isNotionConnected: true,
+      notionAccount: {
+        workspaceName: "Tejas's Workspace",
+        databaseName: 'SyncSpend Expenses',
+        databaseId: 'syncspend_notion_db',
+        connectedAt: new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString(),
+      },
       notionToken: '',
       notionDatabaseId: '',
-      isNotionEnabled: false,
+      isNotionEnabled: true,
       googleSheetsWebhookUrl: '',
-      isGoogleSheetsEnabled: false,
+      isGoogleSheetsEnabled: true,
       theme: 'system',
-      currencySymbol: '$', // Matches iOS app screenshot
+      currencySymbol: '$',
       accountName: 'Personal',
       accounts: ['Personal', 'Business', 'Joint'],
-      fitToFrame: true, // Fit-to-frame mobile enclosure by default
+      fitToFrame: true,
       autoSyncOnOnline: true,
+      quickTapGestureEnabled: true,
     };
 
     try {
