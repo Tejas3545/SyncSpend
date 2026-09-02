@@ -1,0 +1,6 @@
+{
+  "name": "SpendSync",
+  "description": "Minimal, monochrome offline-first expense tracker with Notion sync, smart suggestions, and spending analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
