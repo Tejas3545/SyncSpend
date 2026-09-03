@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.spendsync.app.presentation.screens.home.ExpenseItemRow
+import com.spendsync.app.presentation.screens.home.components.ExpenseItemRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

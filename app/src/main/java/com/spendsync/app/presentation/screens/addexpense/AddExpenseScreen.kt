@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.format.DateTimeFormatter
+import com.spendsync.app.presentation.screens.addexpense.components.NumericKeypad
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -396,50 +397,6 @@ fun AddExpenseScreen(
             }
         ) {
             DatePicker(state = datePickerState)
-        }
-    }
-}
-
-@Composable
-fun NumericKeypad(
-    onKeyClick: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val keys = listOf(
-        listOf("1", "2", "3"),
-        listOf("4", "5", "6"),
-        listOf("7", "8", "9"),
-        listOf(".", "0", "backspace")
-    )
-
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        keys.forEach { row ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { key ->
-                    Surface(
-                        onClick = { onKeyClick(key) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            if (key == "backspace") {
-                                Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Delete", modifier = Modifier.size(20.dp))
-                            } else {
-                                Text(
-                                    key, 
-                                    fontSize = 22.sp, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

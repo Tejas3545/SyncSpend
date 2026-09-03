@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.spendsync.app.presentation.screens.addexpense.components.NumericKeypad
 import com.spendsync.app.ui.theme.SyncSpendTheme
 import dagger.hilt.android.AndroidEntryPoint
 

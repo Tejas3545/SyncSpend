@@ -75,26 +75,30 @@ To enable Notion sync:
 ## Project Structure
 
 ```
-app/
-├── data/
-│   ├── local/
-│   │   ├── db/          # Room database, entities, DAOs
-│   │   └── datastore/   # DataStore for settings
-│   ├── remote/
-│   │   └── notion/      # Notion API service, models
-│   └── repository/      # Repository implementations
-├── domain/
-│   ├── model/           # Domain models
-│   ├── repository/      # Repository interfaces
-│   └── usecase/         # Use cases
-├── presentation/
-│   ├── navigation/      # Navigation graph
-│   ├── screens/         # UI screens (Home, AddExpense, History, Settings)
-│   └── components/      # Reusable UI components
-├── widget/              # Jetpack Glance widget
-├── worker/              # WorkManager background sync
-├── di/                  # Hilt dependency injection modules
-└── util/                # Utility classes
+SyncSpend/
+├── .github/
+│   └── workflows/
+│       └── android.yml        # Continuous Integration build workflow
+├── app/                       # Android Application Module
+│   ├── src/main/
+│   │   ├── java/com/spendsync/app/
+│   │   │   ├── data/          # Local (Room, DataStore) & Remote (Notion, Google Sheets)
+│   │   │   ├── domain/        # Entities, Repository Interfaces & Use Cases
+│   │   │   ├── presentation/  # Screens (Home, Add, History, Settings) & Components
+│   │   │   ├── di/            # Hilt Dependency Injection Modules
+│   │   │   ├── worker/        # WorkManager Background Sync Workers
+│   │   │   ├── widget/        # Jetpack Glance Home Screen Widget
+│   │   │   ├── ui/theme/      # Theme, Colors, Typography (High-contrast Dark/Light)
+│   │   │   └── util/          # Currency & Date Formatters
+│   │   └── res/               # Vector Drawables, Layouts, Strings & Fonts
+│   └── build.gradle.kts       # App-level build configuration
+├── art/                       # App branding, icons, and vector graphics
+├── docs/                      # Technical documentation & product roadmap
+│   ├── ARCHITECTURE.md        # Architecture overview & layer documentation
+│   └── ROADMAP.md             # Product, privacy, and release roadmap
+├── gradle/                    # Gradle wrapper and version catalog (libs.versions.toml)
+├── build.gradle.kts           # Root build configuration
+└── settings.gradle.kts        # Root project settings
 ```
 
 ## Cost Analysis
@@ -104,38 +108,21 @@ This application is **100% free** for both developers and users:
 | Item | Cost |
 |------|------|
 | Notion API | $0 (free tier) |
+| Google Sheets API | $0 (free tier) |
 | Room (SQLite) | $0 (Jetpack library) |
 | WorkManager | $0 (Jetpack library) |
 | Jetpack Glance | $0 (Jetpack library) |
 | Retrofit/OkHttp/Moshi | $0 (open source) |
 | Vico charts | $0 (MIT license) |
 | Hilt | $0 (Apache 2.0) |
-| Backend server | $0 for offline/Google Sheets and personal-token Notion mode |
+| Backend server | $0 (serverless offline-first architecture) |
 | Firebase/cloud services | $0 (not used) |
-| Play Store fee | $25 (one-time, for publishing) |
 
-**Developer running cost can remain $0/month for the offline app, Google Sheets, and personal-token Notion mode. Public Notion OAuth would require a secure token-exchange service.**
+## Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Product & Privacy Roadmap](docs/ROADMAP.md)
 
 ## License
 
 This project is open source and free to use. No commercial restrictions.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Support
-
-For issues or questions, please open an issue on the GitHub repository.
-
----
-
-**SpendSync** - Track your spending, sync to Notion, stay free forever.
-
-## Product direction and privacy baseline
-
-SyncSpend is an offline-first native Android application. A user can record and review expenses without creating an account; integrations are optional destinations owned by the user, not a developer-hosted expense database.
-
-See [`DOCS/ANDROID_PRODUCT_ROADMAP.md`](DOCS/ANDROID_PRODUCT_ROADMAP.md) for the agent-ready requirements, architecture, Google Sheets setup plan, secure Notion options, acceptance criteria, and Play Store delivery phases.
-
-> Security notice: never place a Notion OAuth client secret or user integration token in the APK. Any credential previously committed to Git must be revoked/rotated because deleting it in a later commit does not erase repository history.
