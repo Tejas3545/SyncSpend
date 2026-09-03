@@ -1,14 +1,14 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", system-ui, -apple-system-font, "Helvetica Neue", sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", sans-serif;
 }
 
 @layer base {
   :root {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", system-ui, -apple-system-font, "Helvetica Neue", sans-serif;
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", sans-serif;
   }
   
   html, body, button, input, select, textarea {
@@ -28,7 +28,7 @@
   }
 }
 
-/* iOS Dynamic Type & SF Pro Exact Typography Scale */
+/* Material & Modern Typography Scale */
 .ios-large-title {
   font-size: 34px;
   font-weight: 700;

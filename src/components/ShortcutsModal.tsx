@@ -146,7 +146,7 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({
             )}
           </div>
 
-          {/* Action Buttons: Cancel and Done (iOS Blue) */}
+          {/* Action Buttons: Cancel and Done */}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={onClose}

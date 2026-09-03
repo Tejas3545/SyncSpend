@@ -41,7 +41,7 @@ export const ExpenseItem: React.FC<ExpenseItemProps> = ({
       onClick={onClick}
       className="group relative flex items-center justify-between py-2.5 px-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
     >
-      {/* Left Column: Authentic iOS Squircle with clean SVG Icon + Name + Date */}
+      {/* Left Column: Rounded icon tile with SVG Icon + Name + Date */}
       <div className="flex items-center gap-3.5 min-w-0 pr-2">
         <div className="w-10 h-10 rounded-[12px] bg-[#EFEFF4] dark:bg-[#2C2C2E] flex items-center justify-center text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
           <CategoryIcon iconName={iconName} className="w-4.5 h-4.5" />

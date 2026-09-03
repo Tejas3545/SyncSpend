@@ -317,31 +317,28 @@ export const App: React.FC = () => {
 
   return (
     <PhoneFrame
-      fitToFrame={settings.fitToFrame ?? true}
-      onToggleFitToFrame={() => {
-        const next = !settings.fitToFrame;
-        const updated = { ...settings, fitToFrame: next };
-        StorageService.saveSettings(updated);
-        setSettings(updated);
-      }}
       isOnline={isOnline}
       pendingSyncCount={pendingSyncCount}
       onQuickAddShortcut={() => setIsShortcutsOpen(true)}
-      onOpenWidgets={() => setIsWidgetsOpen(true)}
       isDark={isDarkMode}
     >
-      {/* Pinned Top Navigation Bar (Matching Screenshot 1) */}
-      <div className="shrink-0 px-5 pt-3 pb-2 flex items-center justify-between z-30 select-none">
-        {/* Left: Account Switcher Pill ("Personal ▾") */}
-        <AccountSwitcher
-          currentAccount={currentAccount}
-          accounts={settings.accounts || ['Personal', 'Business', 'Joint']}
-          onSelectAccount={handleSelectAccount}
-          onAddAccount={handleAddAccount}
-        />
+      {/* Authentic Android Top App Bar */}
+      <div className="shrink-0 px-4 pt-3.5 pb-2 flex items-center justify-between z-30 select-none">
+        {/* Left: Brand Icon + Account Switcher */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center font-black text-xs shadow-xs tracking-tighter">
+            SS
+          </div>
+          <AccountSwitcher
+            currentAccount={currentAccount}
+            accounts={settings.accounts || ['Personal', 'Business', 'Joint']}
+            onSelectAccount={handleSelectAccount}
+            onAddAccount={handleAddAccount}
+          />
+        </div>
 
         {/* Right: Action Buttons in Liquid Glass Circles */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Search Button */}
           <button
             id="btn-nav-search"
