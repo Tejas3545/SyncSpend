@@ -1,6 +1,0 @@
-{
-  "name": "SyncSpend",
-  "description": "Native Android app (Capacitor + Gradle) for SyncSpend expense tracker with offline-first sync, smart suggestions, and liquid glass styling.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
