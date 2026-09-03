@@ -11,6 +11,8 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Header
+import retrofit2.http.Headers
 
 interface NotionApiService {
 
@@ -42,6 +44,12 @@ interface NotionApiService {
         @Path("databaseId") databaseId: String
     ): Response<NotionDatabase>
 
+    @PATCH("databases/{databaseId}")
+    suspend fun updateDatabase(
+        @Path("databaseId") databaseId: String,
+        @Body body: Map<String, Any>
+    ): Response<NotionDatabase>
+
     @POST("databases")
     suspend fun createDatabase(
         @Body body: Map<String, Any>
@@ -51,4 +59,11 @@ interface NotionApiService {
     suspend fun search(
         @Body body: Map<String, Any>
     ): Response<NotionQueryResponse>
+
+    @POST("oauth/token")
+    @Headers("Content-Type: application/json")
+    suspend fun exchangeToken(
+        @Header("Authorization") basicAuth: String,
+        @Body body: Map<String, String>
+    ): Response<Map<String, Any>>
 }

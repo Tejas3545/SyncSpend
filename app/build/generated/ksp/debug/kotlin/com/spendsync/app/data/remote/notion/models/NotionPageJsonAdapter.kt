@@ -24,10 +24,13 @@ import kotlin.text.buildString
 public class NotionPageJsonAdapter(
   moshi: Moshi,
 ) : JsonAdapter<NotionPage>() {
-  private val options: JsonReader.Options = JsonReader.Options.of("id", "properties")
+  private val options: JsonReader.Options = JsonReader.Options.of("id", "object", "properties")
 
   private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(),
       "id")
+
+  private val nullableStringAdapter: JsonAdapter<String?> = moshi.adapter(String::class.java,
+      emptySet(), "objectType")
 
   private val mapOfStringNotionPropertyValueAdapter: JsonAdapter<Map<String, NotionPropertyValue>> =
       moshi.adapter(Types.newParameterizedType(Map::class.java, String::class.java,
@@ -41,6 +44,7 @@ public class NotionPageJsonAdapter(
 
   override fun fromJson(reader: JsonReader): NotionPage {
     var id: String? = null
+    var objectType: String? = null
     var properties: Map<String, NotionPropertyValue>? = null
     var mask0 = -1
     reader.beginObject()
@@ -48,10 +52,15 @@ public class NotionPageJsonAdapter(
       when (reader.selectName(options)) {
         0 -> id = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("id", "id", reader)
         1 -> {
-          properties = mapOfStringNotionPropertyValueAdapter.fromJson(reader) ?:
-              throw Util.unexpectedNull("properties", "properties", reader)
+          objectType = nullableStringAdapter.fromJson(reader)
           // $mask = $mask and (1 shl 1).inv()
           mask0 = mask0 and 0xfffffffd.toInt()
+        }
+        2 -> {
+          properties = mapOfStringNotionPropertyValueAdapter.fromJson(reader) ?:
+              throw Util.unexpectedNull("properties", "properties", reader)
+          // $mask = $mask and (1 shl 2).inv()
+          mask0 = mask0 and 0xfffffffb.toInt()
         }
         -1 -> {
           // Unknown name, skip it.
@@ -61,21 +70,23 @@ public class NotionPageJsonAdapter(
       }
     }
     reader.endObject()
-    if (mask0 == 0xfffffffd.toInt()) {
+    if (mask0 == 0xfffffff9.toInt()) {
       // All parameters with defaults are set, invoke the constructor directly
       return  NotionPage(
           id = id ?: throw Util.missingProperty("id", "id", reader),
+          objectType = objectType,
           properties = properties as Map<String, NotionPropertyValue>
       )
     } else {
       // Reflectively invoke the synthetic defaults constructor
       @Suppress("UNCHECKED_CAST")
       val localConstructor: Constructor<NotionPage> = this.constructorRef ?:
-          NotionPage::class.java.getDeclaredConstructor(String::class.java, Map::class.java,
-          Int::class.javaPrimitiveType, Util.DEFAULT_CONSTRUCTOR_MARKER).also {
+          NotionPage::class.java.getDeclaredConstructor(String::class.java, String::class.java,
+          Map::class.java, Int::class.javaPrimitiveType, Util.DEFAULT_CONSTRUCTOR_MARKER).also {
           this.constructorRef = it }
       return localConstructor.newInstance(
           id ?: throw Util.missingProperty("id", "id", reader),
+          objectType,
           properties,
           mask0,
           /* DefaultConstructorMarker */ null
@@ -90,6 +101,8 @@ public class NotionPageJsonAdapter(
     writer.beginObject()
     writer.name("id")
     stringAdapter.toJson(writer, value_.id)
+    writer.name("object")
+    nullableStringAdapter.toJson(writer, value_.objectType)
     writer.name("properties")
     mapOfStringNotionPropertyValueAdapter.toJson(writer, value_.properties)
     writer.endObject()

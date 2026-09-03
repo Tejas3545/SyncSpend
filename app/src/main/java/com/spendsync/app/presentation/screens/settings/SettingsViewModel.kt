@@ -65,7 +65,6 @@ class SettingsViewModel @Inject constructor(
 
     fun buildNotionAuthUri(): Uri? {
         if (AppConfig.NOTION_OAUTH_CLIENT_ID.isBlank()) {
-            _uiState.value = _uiState.value.copy(message = "Add your Notion OAuth client id in AppConfig before connecting Notion.")
             return null
         }
         val redirect = URLEncoder.encode(AppConfig.NOTION_REDIRECT_URI, "UTF-8")
@@ -79,20 +78,33 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun connectNotion(token: String, databaseId: String) {
-        if (token.isBlank() || databaseId.isBlank()) {
-            _uiState.value = _uiState.value.copy(message = "Enter both the Notion token and database ID.")
+        if (token.isBlank()) {
+            _uiState.value = _uiState.value.copy(message = "Please enter your Notion Integration Secret.")
             return
         }
+        val cleanToken = token.trim()
+        val cleanDb = com.spendsync.app.util.NotionUtils.extractDatabaseId(databaseId)
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isWorking = true, message = null)
-            authDataStore.saveNotionAuth(token.trim(), databaseId.trim(), null)
-            val connected = notionRepository.testConnection()
-            if (connected) {
-                enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
-                _uiState.value = _uiState.value.copy(isWorking = false, message = "Notion connected. Pending expenses will sync automatically.")
+            authDataStore.saveNotionAuth(cleanToken, cleanDb, null)
+            val result = if (cleanDb.isNotBlank()) {
+                val connected = notionRepository.testConnection()
+                if (connected) Result.success(cleanDb)
+                else Result.failure(Exception("Could not access that Notion database. Make sure you shared it with the SyncSpend integration in Notion!"))
             } else {
+                notionRepository.initializeWorkspaceDatabase()
+            }
+            result.onSuccess {
+                try {
+                    notionRepository.syncUnsyncedExpenses()
+                } catch (e: Exception) {
+                    android.util.Log.w("SettingsViewModel", "Initial sync error: ${e.message}")
+                }
+                enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
+                _uiState.value = _uiState.value.copy(isWorking = false, message = "Notion connected! Expenses synced successfully.")
+            }.onFailure { err ->
                 authDataStore.clearNotionAuth()
-                _uiState.value = _uiState.value.copy(isWorking = false, message = "Could not access that Notion database. Check sharing, token, and ID.")
+                _uiState.value = _uiState.value.copy(isWorking = false, message = err.message ?: "Could not connect to Notion.")
             }
         }
     }
@@ -123,10 +135,18 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(message = "Google Sheets disconnected. Existing sheet data is unchanged.")
     }
 
-    fun syncNow() {
-        enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
-        enqueue(GoogleSyncWorker.WORK_NAME, GoogleSyncWorker.buildOneTimeRequest())
-        _uiState.value = _uiState.value.copy(message = "Sync queued. It will run as soon as a network is available.")
+    fun syncNow() = viewModelScope.launch {
+        _uiState.value = _uiState.value.copy(isWorking = true, message = null)
+        try {
+            if (_uiState.value.notionConnected) {
+                notionRepository.syncUnsyncedExpenses()
+            }
+            enqueue(GoogleSyncWorker.WORK_NAME, GoogleSyncWorker.buildOneTimeRequest())
+            _uiState.value = _uiState.value.copy(isWorking = false, message = "Sync complete! Expenses up to date.")
+        } catch (e: Exception) {
+            val errorMsg = e.message ?: "Sync error occurred"
+            _uiState.value = _uiState.value.copy(isWorking = false, message = "Sync error: $errorMsg")
+        }
     }
 
     fun logout() = viewModelScope.launch {
@@ -135,6 +155,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearMessage() { _uiState.value = _uiState.value.copy(message = null) }
+
+    fun setErrorMessage(message: String) { _uiState.value = _uiState.value.copy(message = message) }
 
     private fun enqueue(name: String, request: androidx.work.OneTimeWorkRequest) {
         workManager.enqueueUniqueWork("${name}_manual", ExistingWorkPolicy.REPLACE, request)

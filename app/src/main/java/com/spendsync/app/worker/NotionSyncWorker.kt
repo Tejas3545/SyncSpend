@@ -26,11 +26,14 @@ class NotionSyncWorker @AssistedInject constructor(
             notionRepository.syncUnsyncedExpenses()
             Result.success()
         } catch (e: HttpException) {
+            android.util.Log.e("NotionSyncWorker", "Notion HTTP ${e.code()}: ${e.response()?.errorBody()?.string()}", e)
             if (e.code() == 429) Result.retry() // Rate limited
             else Result.failure()
         } catch (e: IOException) {
+            android.util.Log.e("NotionSyncWorker", "Notion IO error: ${e.message}", e)
             Result.retry() // Network error, retry
         } catch (e: Exception) {
+            android.util.Log.e("NotionSyncWorker", "Notion sync error: ${e.message}", e)
             Result.failure()
         }
     }

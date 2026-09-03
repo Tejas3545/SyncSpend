@@ -34,8 +34,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="syncspend"
-                    android:host="notion-auth" />
+                    android:scheme="https"
+                    android:host="syncspend"
+                    android:pathPrefix="/oauth" />
             </intent-filter>
 
             <!-- Shortcuts -->

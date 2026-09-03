@@ -3,6 +3,7 @@ package com.spendsync.app.presentation.screens.addexpense;
 import androidx.work.WorkManager;
 import com.spendsync.app.data.local.db.dao.PaymentMethodDao;
 import com.spendsync.app.domain.repository.CategoryRepository;
+import com.spendsync.app.domain.repository.NotionRepository;
 import com.spendsync.app.domain.usecase.AddExpenseUseCase;
 import com.spendsync.app.domain.usecase.GetSuggestionsUseCase;
 import dagger.internal.DaggerGenerated;
@@ -38,23 +39,27 @@ public final class AddExpenseViewModel_Factory implements Factory<AddExpenseView
 
   private final Provider<PaymentMethodDao> paymentMethodDaoProvider;
 
+  private final Provider<NotionRepository> notionRepositoryProvider;
+
   private final Provider<WorkManager> workManagerProvider;
 
   public AddExpenseViewModel_Factory(Provider<AddExpenseUseCase> addExpenseUseCaseProvider,
       Provider<CategoryRepository> categoryRepositoryProvider,
       Provider<GetSuggestionsUseCase> getSuggestionsUseCaseProvider,
       Provider<PaymentMethodDao> paymentMethodDaoProvider,
+      Provider<NotionRepository> notionRepositoryProvider,
       Provider<WorkManager> workManagerProvider) {
     this.addExpenseUseCaseProvider = addExpenseUseCaseProvider;
     this.categoryRepositoryProvider = categoryRepositoryProvider;
     this.getSuggestionsUseCaseProvider = getSuggestionsUseCaseProvider;
     this.paymentMethodDaoProvider = paymentMethodDaoProvider;
+    this.notionRepositoryProvider = notionRepositoryProvider;
     this.workManagerProvider = workManagerProvider;
   }
 
   @Override
   public AddExpenseViewModel get() {
-    return newInstance(addExpenseUseCaseProvider.get(), categoryRepositoryProvider.get(), getSuggestionsUseCaseProvider.get(), paymentMethodDaoProvider.get(), workManagerProvider.get());
+    return newInstance(addExpenseUseCaseProvider.get(), categoryRepositoryProvider.get(), getSuggestionsUseCaseProvider.get(), paymentMethodDaoProvider.get(), notionRepositoryProvider.get(), workManagerProvider.get());
   }
 
   public static AddExpenseViewModel_Factory create(
@@ -62,8 +67,9 @@ public final class AddExpenseViewModel_Factory implements Factory<AddExpenseView
       javax.inject.Provider<CategoryRepository> categoryRepositoryProvider,
       javax.inject.Provider<GetSuggestionsUseCase> getSuggestionsUseCaseProvider,
       javax.inject.Provider<PaymentMethodDao> paymentMethodDaoProvider,
+      javax.inject.Provider<NotionRepository> notionRepositoryProvider,
       javax.inject.Provider<WorkManager> workManagerProvider) {
-    return new AddExpenseViewModel_Factory(Providers.asDaggerProvider(addExpenseUseCaseProvider), Providers.asDaggerProvider(categoryRepositoryProvider), Providers.asDaggerProvider(getSuggestionsUseCaseProvider), Providers.asDaggerProvider(paymentMethodDaoProvider), Providers.asDaggerProvider(workManagerProvider));
+    return new AddExpenseViewModel_Factory(Providers.asDaggerProvider(addExpenseUseCaseProvider), Providers.asDaggerProvider(categoryRepositoryProvider), Providers.asDaggerProvider(getSuggestionsUseCaseProvider), Providers.asDaggerProvider(paymentMethodDaoProvider), Providers.asDaggerProvider(notionRepositoryProvider), Providers.asDaggerProvider(workManagerProvider));
   }
 
   public static AddExpenseViewModel_Factory create(
@@ -71,13 +77,15 @@ public final class AddExpenseViewModel_Factory implements Factory<AddExpenseView
       Provider<CategoryRepository> categoryRepositoryProvider,
       Provider<GetSuggestionsUseCase> getSuggestionsUseCaseProvider,
       Provider<PaymentMethodDao> paymentMethodDaoProvider,
+      Provider<NotionRepository> notionRepositoryProvider,
       Provider<WorkManager> workManagerProvider) {
-    return new AddExpenseViewModel_Factory(addExpenseUseCaseProvider, categoryRepositoryProvider, getSuggestionsUseCaseProvider, paymentMethodDaoProvider, workManagerProvider);
+    return new AddExpenseViewModel_Factory(addExpenseUseCaseProvider, categoryRepositoryProvider, getSuggestionsUseCaseProvider, paymentMethodDaoProvider, notionRepositoryProvider, workManagerProvider);
   }
 
   public static AddExpenseViewModel newInstance(AddExpenseUseCase addExpenseUseCase,
       CategoryRepository categoryRepository, GetSuggestionsUseCase getSuggestionsUseCase,
-      PaymentMethodDao paymentMethodDao, WorkManager workManager) {
-    return new AddExpenseViewModel(addExpenseUseCase, categoryRepository, getSuggestionsUseCase, paymentMethodDao, workManager);
+      PaymentMethodDao paymentMethodDao, NotionRepository notionRepository,
+      WorkManager workManager) {
+    return new AddExpenseViewModel(addExpenseUseCase, categoryRepository, getSuggestionsUseCase, paymentMethodDao, notionRepository, workManager);
   }
 }

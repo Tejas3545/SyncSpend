@@ -2,6 +2,7 @@ package com.spendsync.app.presentation.screens.settings
 
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,19 +21,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.spendsync.app.R
+import com.spendsync.app.presentation.components.NotionConnectDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,22 +95,24 @@ fun SettingsScreen(
                 LiquidSettingsCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         StatusRow(
-                            "Google Sheets", 
-                            if (state.googleConnected) state.googleEmail else "Connect from login screen", 
-                            state.googleConnected, 
-                            "G"
+                            title = "Google", 
+                            subtitle = if (state.googleConnected) state.googleEmail else "Personal spreadsheet auto-sync", 
+                            connected = state.googleConnected, 
+                            iconRes = R.drawable.ic_google_official
                         )
                         
                         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                         
                         StatusRow(
-                            "Notion Database",
-                            if (state.notionConnected) "Connected" else "Connect your Notion workspace",
-                            state.notionConnected,
-                            "N",
+                            title = "Notion",
+                            subtitle = if (state.notionConnected) "Personal workspace connected" else "Auto-creates expenses table",
+                            connected = state.notionConnected,
+                            iconRes = R.drawable.ic_notion_official,
                             onAction = {
-                                viewModel.buildNotionAuthUri()?.let { uri ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                val uri = viewModel.buildNotionAuthUri()
+                                if (uri != null) {
+                                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                                    context.startActivity(intent)
                                 }
                             }
                         )
@@ -205,6 +213,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(32.dp))
             }
         }
+
     }
 
 @Composable
@@ -283,24 +292,26 @@ private fun StatusRow(
     title: String, 
     subtitle: String, 
     connected: Boolean, 
-    monogram: String, 
+    iconRes: Int, 
     onAction: (() -> Unit)? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Box(
-            Modifier
-                .size(40.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape), 
-            contentAlignment = Alignment.Center
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
         ) {
-            Text(
-                monogram, 
-                fontWeight = FontWeight.Black, 
-                color = if (monogram == "G") Color(0xFF4285F4) else MaterialTheme.colorScheme.onSurface
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(iconRes),
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
         
         Column(Modifier.weight(1f)) {

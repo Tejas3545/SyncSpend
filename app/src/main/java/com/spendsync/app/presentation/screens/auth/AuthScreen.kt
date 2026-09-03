@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.spendsync.app.R
 import com.spendsync.app.data.repository.GoogleSheetsRepositoryImpl
+import com.spendsync.app.presentation.components.NotionConnectDialog
 
 @Composable
 fun AuthScreen(
@@ -88,31 +90,9 @@ fun AuthScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 24.dp)
         ) {
-            // Ambient Liquid Glass Background Orbs
-            Box(
-                modifier = Modifier
-                    .size(320.dp)
-                    .offset(x = (-100).dp, y = (-80).dp)
-                    .background(
-                        Brush.radialGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-            )
 
             Column(
                 modifier = Modifier
@@ -166,8 +146,10 @@ fun AuthScreen(
                                 state = state,
                                 onGoogle = ::launchGooglePicker,
                                 onNotion = {
-                                    viewModel.buildNotionAuthUri()?.let { uri ->
-                                        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                    val uri = viewModel.buildNotionAuthUri()
+                                    if (uri != null) {
+                                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                                        context.startActivity(intent)
                                     }
                                 },
                                 onContinue = onContinue
@@ -244,7 +226,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         )
 
         Text(
-            "Track expenses effortlessly. Auto-sync with Notion and Google Sheets with zero backend cost.",
+            "Track expenses effortlessly. Auto-sync with Notion and Google with zero backend cost.",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -322,7 +304,7 @@ private fun LoginPanel(
         )
 
         Text(
-            "Expenses are saved directly to your phone. Connect Google Sheets, Notion, or use local offline mode.",
+            "Expenses are saved directly to your phone. Connect Google, Notion, or use local offline mode.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -333,11 +315,10 @@ private fun LoginPanel(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 AuthProviderItem(
-                    title = "Google Sheets",
+                    title = "Google",
                     subtitle = if (state.googleConnected) state.googleEmail else "Private spreadsheet sync",
                     connected = state.googleConnected,
-                    monogram = "G",
-                    color = Color(0xFF4285F4),
+                    iconRes = R.drawable.ic_google_official,
                     onClick = onGoogle
                 )
 
@@ -345,10 +326,9 @@ private fun LoginPanel(
 
                 AuthProviderItem(
                     title = "Notion",
-                    subtitle = if (state.notionConnected) "Database connected" else "Auto-creates Notion expenses database",
+                    subtitle = if (state.notionConnected) "Database connected" else "Auto-creates Notion expenses table",
                     connected = state.notionConnected,
-                    monogram = "N",
-                    color = MaterialTheme.colorScheme.onSurface,
+                    iconRes = R.drawable.ic_notion_official,
                     onClick = onNotion
                 )
             }
@@ -358,8 +338,6 @@ private fun LoginPanel(
 
         if (state.googleConnected || state.notionConnected) {
             PrimaryLiquidButton("Start SyncSpend", onContinue)
-        } else {
-            PrimaryLiquidButton("Continue (Local & Offline)", onContinue)
         }
 
         Text(
@@ -377,8 +355,7 @@ private fun AuthProviderItem(
     title: String,
     subtitle: String,
     connected: Boolean,
-    monogram: String,
-    color: Color,
+    iconRes: Int,
     onClick: () -> Unit
 ) {
     Row(
@@ -390,13 +367,19 @@ private fun AuthProviderItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
-            contentAlignment = Alignment.Center
+        Surface(
+            modifier = Modifier.size(44.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
         ) {
-            Text(monogram, color = color, fontWeight = FontWeight.Black, fontSize = 20.sp)
+            Box(contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(iconRes),
+                    contentDescription = title,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
         }
         Column(Modifier.weight(1f)) {
             Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
@@ -429,9 +412,9 @@ private fun AuthProviderItem(
 private fun LiquidGlassCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline),
         content = content
     )
 }
@@ -533,7 +516,7 @@ private fun WidgetMock() {
             Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("This Week" to "$120.38", "This Month" to "$349.18", "This Year" to "$1,865.18").forEach { (label, amount) ->
+            listOf("This Week" to "₹120.38", "This Month" to "₹349.18", "This Year" to "₹1,865.18").forEach { (label, amount) ->
                 Surface(
                     Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),

@@ -49,11 +49,43 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun connectNotion(token: String, databaseId: String) {
+        if (token.isBlank()) {
+            _uiState.value = _uiState.value.copy(message = "Please enter your Notion Integration Secret.")
+            return
+        }
+        val cleanToken = token.trim()
+        val cleanDb = com.spendsync.app.util.NotionUtils.extractDatabaseId(databaseId)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isWorking = true, message = null)
+            authDataStore.saveNotionAuth(cleanToken, cleanDb, null)
+            val result = if (cleanDb.isNotBlank()) {
+                val valid = notionRepository.testConnection()
+                if (valid) Result.success(cleanDb)
+                else Result.failure(Exception("Could not access that database. Make sure you shared it with the SyncSpend integration in Notion!"))
+            } else {
+                notionRepository.initializeWorkspaceDatabase()
+            }
+            result.onSuccess {
+                enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
+                _uiState.value = _uiState.value.copy(
+                    isWorking = false,
+                    notionConnected = true,
+                    message = "Notion connected! SyncSpend created your private expenses database."
+                )
+            }.onFailure { err ->
+                authDataStore.clearNotionAuth()
+                _uiState.value = _uiState.value.copy(
+                    isWorking = false,
+                    notionConnected = false,
+                    message = err.message ?: "Failed to connect to Notion."
+                )
+            }
+        }
+    }
+
     fun buildNotionAuthUri(): Uri? {
         if (AppConfig.NOTION_OAUTH_CLIENT_ID.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                message = "Add your Notion OAuth client id in AppConfig before connecting Notion."
-            )
             return null
         }
         val redirect = URLEncoder.encode(AppConfig.NOTION_REDIRECT_URI, "UTF-8")
@@ -67,47 +99,49 @@ class AuthViewModel @Inject constructor(
     }
 
     fun handleNotionRedirect(uri: Uri?) {
-        if (uri == null || uri.scheme != "syncspend" || uri.host != "notion-auth") return
+        if (uri == null || uri.scheme != "https" || uri.host != "syncspend" || uri.path != "/oauth") return
         val error = uri.getQueryParameter("error")
         if (!error.isNullOrBlank()) {
             _uiState.value = _uiState.value.copy(message = "Notion login cancelled: $error")
             return
         }
 
-        val accessToken = uri.getQueryParameter("access_token") ?: uri.getQueryParameter("token")
-        val databaseId = uri.getQueryParameter("database_id")
         val code = uri.getQueryParameter("code")
-
-        if (accessToken.isNullOrBlank()) {
-            _uiState.value = _uiState.value.copy(
-                message = if (code.isNullOrBlank()) {
-                    "Notion did not return an access token."
-                } else {
-                    "Notion approved access. Route the OAuth code through your secure token-exchange backend, then redirect here with access_token."
-                }
-            )
+        if (code.isNullOrBlank()) {
+            _uiState.value = _uiState.value.copy(message = "Notion did not return an authorization code.")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isWorking = true, message = null)
-            authDataStore.saveNotionAuth(accessToken, databaseId.orEmpty(), null)
-            val result = if (databaseId.isNullOrBlank()) {
-                notionRepository.initializeWorkspaceDatabase()
-            } else {
-                Result.success(databaseId)
-            }
-            result.onSuccess {
-                enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
+            
+            // Step 1: Exchange code for access token
+            val tokenResult = notionRepository.exchangeOAuthCode(code)
+            tokenResult.onSuccess { token ->
+                authDataStore.saveNotionAuth(token, "", null) // temporary save token without db
+
+                // Step 2: Create/Init Database automatically
+                val initResult = notionRepository.initializeWorkspaceDatabase()
+                initResult.onSuccess {
+                    enqueue(NotionSyncWorker.WORK_NAME, NotionSyncWorker.buildOneTimeRequest())
+                    _uiState.value = _uiState.value.copy(
+                        isWorking = false,
+                        notionConnected = true,
+                        message = "Notion connected! SyncSpend created your private expenses database."
+                    )
+                }.onFailure { err ->
+                    authDataStore.clearNotionAuth()
+                    _uiState.value = _uiState.value.copy(
+                        isWorking = false,
+                        notionConnected = false,
+                        message = err.message ?: "Failed to set up Notion database."
+                    )
+                }
+            }.onFailure { err ->
                 _uiState.value = _uiState.value.copy(
                     isWorking = false,
-                    message = "Notion connected. SyncSpend created your private expenses database."
-                )
-            }.onFailure {
-                authDataStore.clearNotionAuth()
-                _uiState.value = _uiState.value.copy(
-                    isWorking = false,
-                    message = it.message ?: "Notion setup failed."
+                    notionConnected = false,
+                    message = err.message ?: "Failed to exchange Notion token."
                 )
             }
         }
@@ -122,6 +156,7 @@ class AuthViewModel @Inject constructor(
                     enqueue(GoogleSyncWorker.WORK_NAME, GoogleSyncWorker.buildOneTimeRequest())
                     _uiState.value = _uiState.value.copy(
                         isWorking = false,
+                        googleConnected = true,
                         message = "Google Sheets connected. Your session will stay active until logout."
                     )
                 }
@@ -129,6 +164,7 @@ class AuthViewModel @Inject constructor(
                     authDataStore.clearGoogleAuth()
                     _uiState.value = _uiState.value.copy(
                         isWorking = false,
+                        googleConnected = false,
                         message = it.message ?: "Google login failed."
                     )
                 }
@@ -137,6 +173,10 @@ class AuthViewModel @Inject constructor(
 
     fun clearMessage() {
         _uiState.value = _uiState.value.copy(message = null)
+    }
+
+    fun setErrorMessage(message: String) {
+        _uiState.value = _uiState.value.copy(message = message)
     }
 
     private fun enqueue(name: String, request: androidx.work.OneTimeWorkRequest) {

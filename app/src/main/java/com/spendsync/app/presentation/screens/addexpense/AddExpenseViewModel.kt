@@ -27,6 +27,7 @@ class AddExpenseViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val getSuggestionsUseCase: GetSuggestionsUseCase,
     private val paymentMethodDao: PaymentMethodDao,
+    private val notionRepository: com.spendsync.app.domain.repository.NotionRepository,
     private val workManager: WorkManager
 ) : ViewModel() {
 
@@ -130,7 +131,12 @@ class AddExpenseViewModel @Inject constructor(
 
         viewModelScope.launch {
             addExpenseUseCase(expense)
-            // Trigger immediate sync
+            // Trigger immediate sync in background/foreground coroutine
+            try {
+                notionRepository.syncUnsyncedExpenses()
+            } catch (e: Exception) {
+                android.util.Log.w("AddExpenseViewModel", "Immediate Notion sync deferred: ${e.message}")
+            }
             workManager.enqueueUniqueWork(
                 "one_time_notion_sync",
                 androidx.work.ExistingWorkPolicy.REPLACE,

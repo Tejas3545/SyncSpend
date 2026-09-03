@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spendsync.app.R
 import com.spendsync.app.domain.model.SpendingSummary
 import java.util.Locale
 
@@ -126,8 +128,7 @@ fun WidgetsBottomSheet(
                     // Notion Tile
                     SyncStatusTile(
                         name = "Notion",
-                        letter = "N",
-                        badgeColor = Color(0xFF000000),
+                        iconRes = R.drawable.ic_notion_official,
                         isConnected = isNotionConnected,
                         onClick = {
                             onDismiss()
@@ -137,9 +138,8 @@ fun WidgetsBottomSheet(
 
                     // Google Sheets Tile
                     SyncStatusTile(
-                        name = "Sheets",
-                        letter = "G",
-                        badgeColor = Color(0xFF0F9D58),
+                        name = "Google Sheets",
+                        iconRes = R.drawable.ic_google_official,
                         isConnected = isGoogleConnected,
                         onClick = {
                             onDismiss()
@@ -189,8 +189,7 @@ private fun WidgetTrendCard(
 @Composable
 private fun SyncStatusTile(
     name: String,
-    letter: String,
-    badgeColor: Color,
+    iconRes: Int,
     isConnected: Boolean,
     onClick: () -> Unit
 ) {
@@ -202,17 +201,16 @@ private fun SyncStatusTile(
     ) {
         Box(contentAlignment = Alignment.TopEnd) {
             Surface(
-                modifier = Modifier.size(46.dp),
+                modifier = Modifier.size(48.dp),
                 shape = RoundedCornerShape(14.dp),
-                color = badgeColor,
-                shadowElevation = 2.dp
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = letter,
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 20.sp
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(iconRes),
+                        contentDescription = name,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

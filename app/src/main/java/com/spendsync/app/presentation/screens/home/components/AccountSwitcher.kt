@@ -62,120 +62,146 @@ fun AccountSwitcher(
             }
         }
 
-        // Dropdown Menu
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = {
-                isExpanded = false
-                isAdding = false
-            },
-            modifier = Modifier
-                .width(220.dp)
-                .background(MaterialTheme.colorScheme.surface),
-            properties = PopupProperties(focusable = true)
-        ) {
-            Text(
-                text = "ACCOUNTS",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-            )
+        val visibleState = remember { androidx.compose.animation.core.MutableTransitionState(false) }
+        visibleState.targetState = isExpanded
 
-            accounts.forEach { account ->
-                val isSelected = account == currentAccount
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+        if (visibleState.currentState || visibleState.targetState) {
+            androidx.compose.ui.window.Popup(
+                alignment = Alignment.TopStart,
+                offset = androidx.compose.ui.unit.IntOffset(0, 120),
+                onDismissRequest = {
+                    isExpanded = false
+                    isAdding = false
+                },
+                properties = PopupProperties(focusable = true)
+            ) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visibleState = visibleState,
+                    enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(200)) + 
+                            androidx.compose.animation.scaleIn(initialScale = 0.9f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0f), animationSpec = androidx.compose.animation.core.spring(dampingRatio = 0.8f, stiffness = 400f)),
+                    exit = androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150)) + 
+                           androidx.compose.animation.scaleOut(targetScale = 0.95f, transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0f), animationSpec = androidx.compose.animation.core.tween(150))
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .width(240.dp)
+                            .padding(8.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                        shadowElevation = 16.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 12.dp)
                         ) {
                             Text(
-                                text = account,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                text = "ACCOUNTS",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.sp,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                             )
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    },
-                    onClick = {
-                        onSelectAccount(account)
-                        isExpanded = false
-                    }
-                )
-            }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 4.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-            )
-
-            if (isAdding) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    OutlinedTextField(
-                        value = newAccountText,
-                        onValueChange = { newAccountText = it },
-                        placeholder = { Text("Account name...", style = MaterialTheme.typography.bodySmall) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.bodySmall
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = { isAdding = false },
-                            contentPadding = PaddingValues(horizontal = 8.dp)
-                        ) {
-                            Text("Cancel", fontSize = 12.sp)
-                        }
-                        Button(
-                            onClick = {
-                                if (newAccountText.isNotBlank()) {
-                                    onAddAccount(newAccountText.trim())
-                                    newAccountText = ""
-                                    isAdding = false
-                                    isExpanded = false
+                            accounts.forEach { account ->
+                                val isSelected = account == currentAccount
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onSelectAccount(account)
+                                            isExpanded = false
+                                        }
+                                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = account,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
-                            },
-                            enabled = newAccountText.isNotBlank(),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            Text("Add", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                            )
+
+                            if (isAdding) {
+                                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                                    OutlinedTextField(
+                                        value = newAccountText,
+                                        onValueChange = { newAccountText = it },
+                                        placeholder = { Text("Account name...", style = MaterialTheme.typography.bodySmall) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textStyle = MaterialTheme.typography.bodySmall,
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    Spacer(Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        TextButton(
+                                            onClick = { isAdding = false },
+                                            contentPadding = PaddingValues(horizontal = 8.dp)
+                                        ) {
+                                            Text("Cancel", fontSize = 13.sp)
+                                        }
+                                        Button(
+                                            onClick = {
+                                                if (newAccountText.isNotBlank()) {
+                                                    onAddAccount(newAccountText.trim())
+                                                    newAccountText = ""
+                                                    isAdding = false
+                                                    isExpanded = false
+                                                }
+                                            },
+                                            enabled = newAccountText.isNotBlank(),
+                                            shape = RoundedCornerShape(12.dp),
+                                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                                        ) {
+                                            Text("Add", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { isAdding = true }
+                                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(16.dp))
+                                    Text(
+                                        "Add New Account",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            } else {
-                DropdownMenuItem(
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    text = {
-                        Text(
-                            "Add New Account",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
-                    onClick = { isAdding = true }
-                )
             }
         }
     }

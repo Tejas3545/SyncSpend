@@ -552,7 +552,7 @@ public final class DaggerSyncSpendApp_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.spendsync.app.presentation.screens.addexpense.AddExpenseViewModel 
-          return (T) new AddExpenseViewModel(viewModelCImpl.addExpenseUseCase(), singletonCImpl.bindCategoryRepositoryProvider.get(), viewModelCImpl.getSuggestionsUseCase(), singletonCImpl.paymentMethodDao(), singletonCImpl.provideWorkManagerProvider.get());
+          return (T) new AddExpenseViewModel(viewModelCImpl.addExpenseUseCase(), singletonCImpl.bindCategoryRepositoryProvider.get(), viewModelCImpl.getSuggestionsUseCase(), singletonCImpl.paymentMethodDao(), singletonCImpl.bindNotionRepositoryProvider.get(), singletonCImpl.provideWorkManagerProvider.get());
 
           case 1: // com.spendsync.app.presentation.screens.auth.AuthViewModel 
           return (T) new AuthViewModel(singletonCImpl.authDataStoreProvider.get(), singletonCImpl.authRepositoryImplProvider.get(), singletonCImpl.bindNotionRepositoryProvider.get(), singletonCImpl.provideWorkManagerProvider.get());

@@ -64,6 +64,10 @@
         "source": "com.spendsync.app-main-90:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
+        "merged": "com.spendsync.app-debug-88:/drawable_ic_notion_official.png.flat",
+        "source": "com.spendsync.app-main-90:/drawable/ic_notion_official.png"
+    },
+    {
         "merged": "com.spendsync.app-debug-88:/mipmap-hdpi_ic_launcher_round.png.flat",
         "source": "com.spendsync.app-main-90:/mipmap-hdpi/ic_launcher_round.png"
     },
@@ -102,6 +106,10 @@
     {
         "merged": "com.spendsync.app-debug-88:/mipmap-xhdpi_ic_launcher_foreground_image.png.flat",
         "source": "com.spendsync.app-main-90:/mipmap-xhdpi/ic_launcher_foreground_image.png"
+    },
+    {
+        "merged": "com.spendsync.app-debug-88:/drawable_ic_google_official.png.flat",
+        "source": "com.spendsync.app-main-90:/drawable/ic_google_official.png"
     },
     {
         "merged": "com.spendsync.app-debug-88:/mipmap-mdpi_ic_launcher.png.flat",
